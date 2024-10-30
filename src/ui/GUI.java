@@ -139,7 +139,7 @@ public class GUI extends Application {
             for (int col = 0; col < cols; col++) {
                 Button button = new Button("Drop");
                 int column = col;
-                button.setOnAction(_ -> dropPiece(column, labelText));
+                button.setOnAction(event -> dropPiece(column, labelText));
                 buttons[col] = button;
                 grid.add(button, col, rows); // Re-add the buttons
             }
