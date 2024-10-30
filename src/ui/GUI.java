@@ -84,10 +84,10 @@ public class GUI extends Application {
         primaryStage.show(); // Display the stage
 
         // click player button
-        playerButton.setOnAction(_ -> updateGridPane(primaryStage, "Player vs. Player"));
+        playerButton.setOnAction(event -> updateGridPane(primaryStage, "Player vs. Player"));
 
         // click computer button
-        playerComputer.setOnAction(_ -> updateGridPane(primaryStage, "Player vs. Computer"));
+        playerComputer.setOnAction(event -> updateGridPane(primaryStage, "Player vs. Computer"));
 
     } // closes start method
 
