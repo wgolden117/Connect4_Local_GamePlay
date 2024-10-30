@@ -174,14 +174,14 @@ public class GUI extends Application {
      */
     private Button getButton(int col, String labelText) {
         Button button = new Button("Drop");
-        button.setOnAction(_ -> {
+        button.setOnAction(event -> {
             if (!checkFullColumn(col)) {
                 if (currentPlayer == 1) { // Ensure it's Player 1's turn
                     dropPiece(col, labelText); // Player makes a move
 
                     // Create a delay of 1 second before the computer makes a move
                     PauseTransition delay = new PauseTransition(Duration.seconds(0.5)); // 1-second delay
-                    delay.setOnFinished(event -> {
+                    delay.setOnFinished(finishedEvent -> { // Rename to avoid conflict
                         if (currentPlayer == 2) { // Check if it's the computer's turn
                             int computerTurn = computerMove(); // computer generates a move
                             dropPiece(computerTurn, labelText); // computer makes a move
