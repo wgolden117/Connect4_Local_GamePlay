@@ -42,7 +42,13 @@ java --version
 ```
 -If needed, you can download the most recent version of Java here: [download the JDK](https://www.oracle.com/java/technologies/downloads/#jdk23-linux).
 
-### Step 3: Clone the Repository
+### Step 3: Verify git is installed by running the following command
+```
+git --version
+```
+- If git is not installed, you can download it here: [download git](https://git-scm.com/downloads).
+
+### Step 4: Clone the Repository
 1. Open your terminal (or command prompt) and clone the repository:
    ```
    git clone https://github.com/wgolden117/connect4_local_gameplay.git
@@ -71,7 +77,7 @@ java --version
    
    -For example: "C:\Users\Weronika Golden\Downloads\openjfx-22_windows-x64_bin-sdk\javafx-sdk-22\lib"
 
-### Step 4: Running in an IDE (IntelliJ, Eclipse)
+### Step 5: Running in an IDE (IntelliJ, Eclipse)
 
 1. Set up your IDE:
 
