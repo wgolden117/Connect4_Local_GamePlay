@@ -20,6 +20,8 @@ To run this project, you need:
 
 -JavaFX SDK
 
+-git
+
 ### Step 1: Download and Set Up JavaFX SDK if it's not already installed
 
 If you’re using JDK 11 or higher, [download the JavaFX SDK](https://gluonhq.com/products/javafx/).
