@@ -72,27 +72,25 @@ java --version
    -For example: "C:\Users\Weronika Golden\Downloads\openjfx-22_windows-x64_bin-sdk\javafx-sdk-22\lib"
 
 ### Step 4: Running in an IDE (IntelliJ, Eclipse)
+
 1. Set up your IDE:
 
-  Open the project in your favorite IDE (e.g., IntelliJ or Eclipse).
-
-   Add the JavaFX SDK to the project:
-
-   In IntelliJ: Go to File > Project Structure > Libraries, click + to add the JavaFX SDK.
-
-   In Eclipse: Go to Project > Properties > Java Build Path, and add the JavaFX SDK as an external library.
+   - Open the project in your favorite IDE (e.g., IntelliJ or Eclipse).
+   - Add the JavaFX SDK to the project:
+     - **In IntelliJ**: Go to File > Project Structure > Libraries, click `+` to add the JavaFX SDK.
+     - **In Eclipse**: Go to Project > Properties > Java Build Path, and add the JavaFX SDK as an external library.
 
 2. Edit VM Options:
 
-  In your IDE's run configuration, add the following VM options to run the JavaFX-based GUI:
+   - In your IDE's run configuration, add the following VM options to run the JavaFX-based GUI:
+     ```bash
+     --module-path "C:\path\to\javafx-sdk\lib" --add-modules javafx.controls,javafx.fxml
+     ```
+   - Replace `"C:\path\to\javafx-sdk\lib"` with the actual path to your JavaFX SDK.
 
-   --module-path "C:\path\to\javafx-sdk\lib" --add-modules javafx.controls,javafx.fxml
+3. Run the Application:
 
-   Replace "C:\path\to\javafx-sdk\lib" with the actual path to your JavaFX SDK.
- 
-   Run the Application:
-
-   Select either ConsoleUI or GUI and run it from the IDE.
+   - Select either `ConsoleUI` or `GUI` and run it from the IDE.
 
 Credits
 Developed by Weronika Golden as part of a local Connect4 game project.
