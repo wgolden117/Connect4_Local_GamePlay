@@ -16,11 +16,11 @@ The project includes:
 ## Prerequisites
 To run this project, you need:
 
--Java Development Kit (JDK) 11 or higher.
+- JavaFX SDK
 
--JavaFX SDK
+- Java Development Kit (JDK) 11 or higher.
 
--git
+- git
 
 ### Step 1: Download and Set Up JavaFX SDK if it's not already installed
 
