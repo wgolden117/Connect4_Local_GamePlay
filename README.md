@@ -5,16 +5,22 @@ The game allows users to play against another player or the computer locally on 
 ## Description
 The project includes:
 -A console-based version of the game (ConsoleUI).
+
 -A JavaFX GUI-based version (GUI).
+
 -Game logic handled by classes in the core package.
 
 ## Prerequisites
 To run this project, you need:
+
 -Java Development Kit (JDK) 11 or higher.
+
 -JavaFX SDK
 
 ### Step 1: Download and Set Up JavaFX SDK if it's not already installed
+
 If you’re using JDK 11 or higher, [download the JavaFX SDK](https://gluonhq.com/products/javafx/).
+
 NOTE: If there are compatibility errors, try downloading an older sdk version such as 17.03.10
 
 - Extract the SDK to a location on your system, for example:
@@ -26,6 +32,7 @@ NOTE: If there are compatibility errors, try downloading an older sdk version su
   javac --version
   ```
 ### Step 2: Make sure you are running version Java 11 or higher
+
 -Run the following command to verify your version
 ```
 java --version
@@ -58,6 +65,7 @@ java --version
     ```
 
    -Replace ""\path\to\javafx-sdk-22\lib" with your path to the lib folder of the SDK
+   
    -For example: "C:\Users\Weronika Golden\Downloads\openjfx-22_windows-x64_bin-sdk\javafx-sdk-22\lib"
 
 ### Step 4: Running in an IDE (IntelliJ, Eclipse)
