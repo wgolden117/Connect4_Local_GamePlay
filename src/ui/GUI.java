@@ -22,6 +22,7 @@ import java.util.Optional;
 import java.util.Random;
 import javafx.animation.PauseTransition;
 import javafx.util.Duration;
+import javafx.stage.Window;
 
 /**
  * Class to implement a GUI
@@ -43,13 +44,11 @@ public class GUI extends Application {
     }
 
     /**
-     *
      * start method that creates the GUI to ask the user
      * if they would like to play vs. another player
      * or the computer
      *
      * @param primaryStage primaryStage
-     *
      */
     @Override
     public void start(Stage primaryStage) {
@@ -92,12 +91,10 @@ public class GUI extends Application {
     } // closes start method
 
     /**
-     *
      * Creates the GameBoard with options to drop pieces
      *
      * @param primaryStage primaryStage
-     * @param labelText label
-     *
+     * @param labelText    label
      */
     public void updateGridPane(Stage primaryStage, String labelText) {
         // create GridPane
@@ -135,7 +132,7 @@ public class GUI extends Application {
 
         Button[] buttons = new Button[cols];
 
-        if (labelText.equals("Player vs. Player")){
+        if (labelText.equals("Player vs. Player")) {
             for (int col = 0; col < cols; col++) {
                 Button button = new Button("Drop");
                 int column = col;
@@ -165,12 +162,11 @@ public class GUI extends Application {
     }
 
     /**
-     *
      * creates a method getButton to better organize the code
-     * @param col column
+     *
+     * @param col       column
      * @param labelText labelText
      * @return button
-     *
      */
     private Button getButton(int col, String labelText) {
         Button button = new Button("Drop");
@@ -197,13 +193,11 @@ public class GUI extends Application {
     }
 
     /**
-     *
      * Allows a player to drop a piece on the gameBoard
      * with the Drop button and checks the winState
      *
-     * @param col column
+     * @param col       column
      * @param labelText labelText
-     *
      */
     private void dropPiece(int col, String labelText) {
         // If the game is over, do nothing
@@ -242,15 +236,14 @@ public class GUI extends Application {
             displayMessage("It's a Draw!", true, labelText, col);
         }
     }
+
     /**
-     *
      * A method to allow the computer to randomly generate a move
      * without choosing a full column
      *
      * @return int
-     *
      */
-    private int computerMove(){
+    private int computerMove() {
         Random random = new Random();
         int column;
         do {
@@ -258,12 +251,12 @@ public class GUI extends Application {
         } while (checkFullColumn(column));
         return column;
     }
+
     /**
-     *
      * checks to see if column is full
+     *
      * @param col column
      * @return boolean
-     *
      */
     private boolean checkFullColumn(int col) {
         for (int row = rows - 1; row >= 0; row--) {
@@ -273,12 +266,12 @@ public class GUI extends Application {
         }
         return true;
     }
+
     /**
-     *
      * check the win state of the GUI board
+     *
      * @param color color
      * @return boolean
-     *
      */
     public boolean checkWinState(Color color) {
         // Check horizontal
@@ -334,18 +327,20 @@ public class GUI extends Application {
 
     /**
      * Listen for window close
+     *
      * @param onCloseListener
      */
     public void setOnCloseListener(Runnable onCloseListener) {
         this.onCloseListener = onCloseListener;
     }
 
-    /** Helper method to display a message then close the game
+    /**
+     * Helper method to display a message then close the game
      *
-     * @param message message
+     * @param message    message
      * @param closeGame, closes the game if true
-     * @param labelText labelText
-     * @param col column
+     * @param labelText  labelText
+     * @param col        column
      */
     private void displayMessage(String message, boolean closeGame, String labelText, int col) {
         Platform.runLater(() -> {
@@ -392,6 +387,7 @@ public class GUI extends Application {
 
     /**
      * Method to start the game over
+     *
      * @param labelText labelText
      */
     private void playAgain(String labelText) {
@@ -415,11 +411,19 @@ public class GUI extends Application {
      * method to close GUI and client
      */
     public void closeApplication() {
-        // Close game
-        Stage stage = (Stage) circles[0][0].getScene().getWindow();
+        // Check if the circles array has been initialized
+        Stage stage;
+        if (circles[0][0] != null && circles[0][0].getScene() != null) {
+            stage = (Stage) circles[0][0].getScene().getWindow();
+        } else {
+            // If circles is uninitialized, get the primary stage in a safer way
+            stage = (Stage) Stage.getWindows().filtered(Window::isShowing).get(0);
+        }
         stage.close();
-        // close client
-        if (onCloseListener != null)
+
+        // Execute any additional onCloseListener tasks
+        if (onCloseListener != null) {
             onCloseListener.run();
+        }
     }
-} // closes Connect4GUI class
+}// closes GUI class
