@@ -24,8 +24,6 @@ To run this project, you need:
 
 If you’re using JDK 11 or higher, [download the JavaFX SDK](https://gluonhq.com/products/javafx/).
 
-NOTE: If there are compatibility errors, try downloading an older sdk version such as 17.03.10
-
 - Extract the SDK to a location on your system, for example:
     ```
     C:\path\to\javafx-sdk
@@ -34,6 +32,8 @@ NOTE: If there are compatibility errors, try downloading an older sdk version su
   ```
   javac --version
   ```
+  NOTE: If there are compatibility errors between the sdk and jdk, try downloading an older sdk version such as 17.03.10
+  
 ### Step 2: Make sure you are running version Java 11 or higher
 
 -Run the following command to verify your version
