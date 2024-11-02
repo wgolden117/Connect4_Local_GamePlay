@@ -1,9 +1,12 @@
 # Connect4 Local Gameplay
+
 This is a Java implementation of the Connect4 game, which can be played either through a Console interface or a Graphical User Interface (GUI) using JavaFX. 
+
 The game allows users to play against another player or the computer locally on their machine.
 
 ## Description
 The project includes:
+
 -A console-based version of the game (ConsoleUI).
 
 -A JavaFX GUI-based version (GUI).
