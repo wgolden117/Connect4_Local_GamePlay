@@ -6,20 +6,14 @@ The game allows users to play against another player or the computer locally on 
 
 ## Description
 The project includes:
-
--A console-based version of the game (ConsoleUI).
-
--A JavaFX GUI-based version (GUI).
-
--Game logic handled by classes in the core package.
+- A console-based version of the game (ConsoleUI).
+- A JavaFX GUI-based version (GUI).
+- Game logic handled by classes in the core package.
 
 ## Prerequisites
 To run this project, you need:
-
 - JavaFX SDK
-
 - Java Development Kit (JDK) 11 or higher.
-
 - git
 
 ### Step 1: Download and Set Up JavaFX SDK if it's not already installed
@@ -37,12 +31,11 @@ If you’re using JDK 11 or higher, [download the JavaFX SDK](https://gluonhq.co
   NOTE: If there are compatibility errors between the sdk and jdk, try downloading an older sdk version such as 17.03.10
   
 ### Step 2: Make sure you are running version Java 11 or higher
-
--Run the following command to verify your version
+- Run the following command to verify your version
 ```
 java --version
 ```
--If needed, you can download the most recent version of Java here: [download the JDK](https://www.oracle.com/java/technologies/downloads/#jdk23-linux).
+- If needed, you can download the most recent version of Java here: [download the JDK](https://www.oracle.com/java/technologies/downloads/#jdk23-linux).
 
 ### Step 3: Verify git is installed by running the following command
 ```
