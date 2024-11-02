@@ -10,53 +10,57 @@ The project includes:
 
 ## Prerequisites
 To run this project, you need:
--Java Development Kit (JDK) 11.
--JavaFX SDK.
+-Java Development Kit (JDK) 11 or higher.
+-JavaFX SDK
 
-## Installation
-### Step 1: Clone the Repository
-1. Open your terminal (or command prompt) and clone the repository:
-   ```
-   git clone https://github.com/wgolden117/connect4_local_gameplay.git
-   ```
-   OR
-
-- Click on the <> Code button with the drop down arrow and download the zip file
-- Extract the zip file
-
-### Step 2: Download and Set Up JavaFX SDK
+### Step 1: Download and Set Up JavaFX SDK if it's not already installed
 If you’re using JDK 11 or higher, [download the JavaFX SDK](https://gluonhq.com/products/javafx/).
-NOTE: Make sure to download version 17.0.13 for your system, other versions are not yet compatible
+NOTE: If there are compatibility errors, try downloading an older sdk version such as 17.03.10
 
 - Extract the SDK to a location on your system, for example:
     ```
     C:\path\to\javafx-sdk
     ```
-### Step 3: Compile the Program
-#### Command Line (Windows/macOS/Linux)
-1. Navigate into the source folder of the project directory:
-    -Here is an example of what that would look like
-   ```
-   cd "C:\Users\Weronika Golden\Downloads\Connect4_Local_GamePlay-master\Connect4_Local_GamePlay-master\src"
-   ```
-   -Replace the path with your own path to the src file
-   
-3. Compile the project:
+- To verify installation, run the following command:
+  ```
+  javac --version
+  ```
+### Step 2: Make sure you are running version Java 11 or higher
+-Run the following command to verify your version
+```
+java --version
+```
+-If needed, you can download the most recent version of Java here: [download the JDK](https://www.oracle.com/java/technologies/downloads/#jdk23-linux).
 
-    ```bash
-    javac --module-path "C:\path\to\javafx-sdk\lib" --add-modules javafx.controls,javafx.fxml ui/*.java core/*.java
+### Step 3: Clone the Repository
+1. Open your terminal (or command prompt) and clone the repository:
+   ```
+   git clone https://github.com/wgolden117/connect4_local_gameplay.git
+   ```
+2. Navigate to the project directory
+   ```
+   cd connect4_local_gameplay
+   ```
+3. Compile the program:
+   ```
+   javac --module-path "\path\to\javafx-sdk-22\lib" --add-modules javafx.controls,javafx.fxml -d bin src/module-info.java src/core/*.java src/ui/*.java
+   ```
+
+4. Run the program:
+   - Option 1:
+    ```
+    java --module-path "\path\to\javafx-sdk-22\lib" --add-modules javafx.controls,javafx.fxml -cp bin ui.GUI
     ```
 
-   -Replace `C:\path\to\javafx-sdk\lib` with the actual path where you extracted the JavaFX SDK.
+   - Option 2:
+    ```
+     java --module-path "\path\to\javafx-sdk-22\lib" --add-modules javafx.controls,javafx.fxml -cp bin ui.ConsoleUI
+    ```
 
-### Step 4: Running the Game
-#### Use the following command:
-```bash
-java --module-path "C:\path\to\javafx-sdk\lib" --add-modules javafx.controls,javafx.fxml ui.ConsoleUI
-```
- -Replace `C:\path\to\javafx-sdk\lib` with the actual path where you extracted the JavaFX SDK.
+   -Replace ""\path\to\javafx-sdk-22\lib" with your path to the lib folder of the SDK
+   -For example: "C:\Users\Weronika Golden\Downloads\openjfx-22_windows-x64_bin-sdk\javafx-sdk-22\lib"
 
-### Step 5: Running in an IDE (IntelliJ, Eclipse)
+### Step 4: Running in an IDE (IntelliJ, Eclipse)
 1. Set up your IDE:
 Open the project in your favorite IDE (e.g., IntelliJ or Eclipse).
 Add the JavaFX SDK to the project:
