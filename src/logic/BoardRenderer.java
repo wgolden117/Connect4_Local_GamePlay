@@ -1,5 +1,6 @@
 package logic;
 
+import javafx.animation.SequentialTransition;
 import javafx.animation.TranslateTransition;
 import javafx.application.Platform;
 import javafx.geometry.Bounds;
@@ -84,15 +85,26 @@ public class BoardRenderer {
 
             root.getChildren().add(falling);
 
-            TranslateTransition transition = new TranslateTransition(Duration.millis(550), falling);
-            transition.setToY(localPoint.getY());
+            // Main drop transition
+            TranslateTransition drop = new TranslateTransition(Duration.millis(450), falling);
+            drop.setToY(localPoint.getY());
 
-            transition.setOnFinished(e -> {
+            // Small bounce up
+            TranslateTransition bounceUp = new TranslateTransition(Duration.millis(100), falling);
+            bounceUp.setToY(localPoint.getY() - 10);
+
+            // Settle back down
+            TranslateTransition settle = new TranslateTransition(Duration.millis(100), falling);
+            settle.setToY(localPoint.getY());
+
+            // Chain them together
+            SequentialTransition sequence = new SequentialTransition(drop, bounceUp, settle);
+            sequence.setOnFinished(e -> {
                 root.getChildren().remove(falling);
                 onFinish.run();
             });
 
-            transition.play();
+            sequence.play();
         });
     }
 
