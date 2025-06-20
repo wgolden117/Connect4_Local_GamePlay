@@ -13,6 +13,9 @@ import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
 import javafx.scene.shape.Rectangle;
 import javafx.util.Duration;
+import javafx.scene.media.AudioClip;
+
+import java.net.URL;
 
 public class BoardRenderer {
     private final StackPane root;
@@ -86,6 +89,15 @@ public class BoardRenderer {
             falling.setTranslateY(-500); // Start above the board
 
             root.getChildren().add(falling);
+
+            // Play the drop sound
+            URL soundURL = getClass().getResource("/sound/drop_piece.wav");
+            if (soundURL != null) {
+                AudioClip clip = new AudioClip(soundURL.toString());
+                clip.play();
+            } else {
+                System.err.println("⚠️ Sound file not found: /sound/drop_piece.wav");
+            }
 
             // Main drop transition
             TranslateTransition drop = new TranslateTransition(Duration.millis(450), falling);
