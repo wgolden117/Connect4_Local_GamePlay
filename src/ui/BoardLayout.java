@@ -19,10 +19,10 @@ public class BoardLayout {
     }
 
     public Optional<StackPane> createBoardLayout(String labelText, GameController controller) {
-        StackPane root = new StackPane(); // Allows animation layering
-        root.setPrefSize(800, 800); // Or adjust to fit window size
+        StackPane root = new StackPane(); // For animation overlay
+        root.setPrefSize(800, 800);
 
-        BoardRenderer boardRenderer = new BoardRenderer(root); // Constructor must accept StackPane now
+        BoardRenderer boardRenderer = new BoardRenderer(root);
 
         GridPane grid = boardRenderer.createGrid();
         grid.setHgap(10);
@@ -30,7 +30,7 @@ public class BoardLayout {
         grid.setAlignment(Pos.CENTER);
         grid.setMaxSize(Region.USE_COMPUTED_SIZE, Region.USE_COMPUTED_SIZE);
 
-        // Reactively update colors when player preferences change
+        // Reactive color updates
         playerSettings.playerOneColorProperty().addListener((obs, oldColor, newColor) ->
                 boardRenderer.refreshColors(gameLogic.getBoard(),
                         playerSettings.getPlayerOneColor(),
@@ -42,36 +42,36 @@ public class BoardLayout {
                         playerSettings.getPlayerTwoColor())
         );
 
-        Label label = new Label(" " + labelText + " ");
-        label.setFont(Font.font("Courier", FontWeight.BOLD, FontPosture.ITALIC, 15));
-
+        // Menu bar
         MenuFactory menuFactory = new MenuFactory(controller::closeApplication, controller.getStage(), playerSettings);
         MenuBar menuBar = menuFactory.createMenuBar();
 
-        // VBox for visual stacking
-        VBox vbox = new VBox(20);
-        vbox.setAlignment(Pos.CENTER);
-        vbox.getChildren().addAll(menuBar, label, grid);
+        // Title label + grid in center VBox
+        Label label = new Label(" " + labelText + " ");
+        label.setFont(Font.font("Courier", FontWeight.BOLD, FontPosture.ITALIC, 15));
+        VBox centerBox = new VBox(20, label, grid);
+        centerBox.setAlignment(Pos.CENTER);
 
-        // Add VBox to StackPane root (for layering animations on top)
-        root.getChildren().add(vbox);
+        // Wrap with BorderPane to pin the menuBar to the top
+        BorderPane layout = new BorderPane();
+        layout.setTop(menuBar);      // MenuBar stays fixed at top
+        layout.setCenter(centerBox); // Game content goes center
 
+        // Add layout to root (for animation layering)
+        root.getChildren().add(layout);
+
+        // Setup buttons
         Button[] buttons = new Button[7];
-
         if (labelText.equals("Player vs. Player")) {
             setupPlayerVsPlayer(grid, controller, labelText, buttons);
         } else {
-            // Show difficulty dialog
             ChoiceDialog<String> dialog = new ChoiceDialog<>("Easy", "Easy", "Medium", "Hard");
             dialog.setTitle("AI Difficulty");
             dialog.setHeaderText("Select AI Difficulty");
             dialog.setContentText("Difficulty:");
             Optional<String> result = dialog.showAndWait();
 
-            // If user cancels the dialog, don't continue
-            if (result.isEmpty()) {
-                return Optional.empty();
-            }
+            if (result.isEmpty()) return Optional.empty();
 
             String aiDifficulty = result.get();
             AIPlayer aiPlayer = new AIPlayer(gameLogic, aiDifficulty, 2);
@@ -81,11 +81,10 @@ public class BoardLayout {
         }
 
         boardRenderer.setButtons(buttons);
-        controller.setBoardRenderer(boardRenderer); // Pass it to controller
+        controller.setBoardRenderer(boardRenderer);
 
         return Optional.of(root);
     }
-
 
     private void setupPlayerVsPlayer(GridPane grid, GameController controller, String labelText, Button[] buttons) {
         for (int col = 0; col < 7; col++) {
