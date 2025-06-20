@@ -6,4 +6,5 @@ module Connect4_Local_GamePlay {
 
     opens ui;
     opens core;
+    opens logic;
 }

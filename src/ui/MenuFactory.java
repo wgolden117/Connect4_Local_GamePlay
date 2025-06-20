@@ -50,19 +50,11 @@ public class MenuFactory {
         alert.setTitle("How to Play");
         alert.setHeaderText("Connect 4 Rules");
         alert.setContentText(
-                "• Players take turns dropping pieces into columns.\n" +
-                        "• First to connect four in a row wins (horizontal, vertical, or diagonal).\n" +
-                        "• If the board fills up with no winner, it's a draw."
+                """
+                        • Players take turns dropping pieces into columns.
+                        • First to connect four in a row wins (horizontal, vertical, or diagonal).
+                        • If the board fills up with no winner, it's a draw."""
         );
-        alert.showAndWait();
-    }
-
-    private void showColorPickerDialog() {
-        Alert alert = new Alert(AlertType.INFORMATION);
-        alert.initOwner(primaryStage);
-        alert.setTitle("Coming Soon");
-        alert.setHeaderText(null);
-        alert.setContentText("Feature coming soon: customize player colors!");
         alert.showAndWait();
     }
 }
