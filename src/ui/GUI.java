@@ -34,6 +34,8 @@ public class GUI extends Application {
     private Runnable onCloseListener;
     private boolean gameOver = false;
     private final PlayerSettings playerSettings = new PlayerSettings();
+    private String aiDifficulty = "Easy";
+
 
     public static void main(String[] args) {
         try {
@@ -147,6 +149,15 @@ public class GUI extends Application {
                 grid.add(button, col, rows); // Re-add the buttons
             }
         } else {
+            // Prompt for AI difficulty
+            ChoiceDialog<String> difficultyDialog = new ChoiceDialog<>("Easy", "Easy", "Medium", "Hard");
+            difficultyDialog.setTitle("AI Difficulty");
+            difficultyDialog.setHeaderText("Select AI Difficulty");
+            difficultyDialog.setContentText("Difficulty:");
+
+            Optional<String> result = difficultyDialog.showAndWait();
+            aiDifficulty = result.orElse("Easy"); // Use default if user cancels
+
             // play against computer
             for (int col = 0; col < cols; col++) {
                 Button button = getButton(col, labelText); // Reinitialize the buttons
@@ -254,12 +265,141 @@ public class GUI extends Application {
      * @return int
      */
     private int computerMove() {
+        switch (aiDifficulty) {
+            case "Easy":
+                return getRandomMove();
+            case "Medium":
+                return getBlockingMoveOrRandom();
+            case "Hard":
+                return getBestMoveMinimax();
+            default:
+                return getRandomMove();
+        }
+    }
+    /**
+     * Generates a random valid column index that is not full.
+     *
+     * @return a column index where a move can be made.
+     */
+    private int getRandomMove() {
         Random random = new Random();
         int column;
         do {
             column = random.nextInt(cols);
         } while (checkFullColumn(column));
         return column;
+    }
+
+    /**
+     * Attempts to block the human player's winning move.
+     * If no block is needed, selects a random valid column.
+     *
+     * @return a column index to block or move randomly.
+     */
+    private int getBlockingMoveOrRandom() {
+        for (int col = 0; col < cols; col++) {
+            if (!checkFullColumn(col)) {
+                int row = getAvailableRow(col);
+                circles[row][col].setFill(playerSettings.getPlayerOneColor()); // Simulate
+
+                if (checkWinState(playerSettings.getPlayerOneColor())) {
+                    circles[row][col].setFill(Color.WHITE); // Undo
+                    return col; // Block
+                }
+
+                circles[row][col].setFill(Color.WHITE); // Undo
+            }
+        }
+        return getRandomMove();
+    }
+
+    /**
+     * Determines the best possible move using the minimax algorithm
+     * with alpha-beta pruning to simulate and evaluate moves.
+     *
+     * @return the column index of the best move, or a fallback random move.
+     */
+    private int getBestMoveMinimax() {
+        int bestScore = Integer.MIN_VALUE;
+        int bestCol = -1;
+
+        for (int col = 0; col < cols; col++) {
+            if (!checkFullColumn(col)) {
+                int row = getAvailableRow(col);
+                circles[row][col].setFill(playerSettings.getPlayerTwoColor());
+
+                int score = minimax(4, false, Integer.MIN_VALUE, Integer.MAX_VALUE);
+
+                circles[row][col].setFill(Color.WHITE); // Undo
+
+                if (score > bestScore) {
+                    bestScore = score;
+                    bestCol = col;
+                }
+            }
+        }
+        return bestCol != -1 ? bestCol : getRandomMove();
+    }
+
+    /**
+     * Recursive minimax function to evaluate board states.
+     *
+     * @param depth remaining search depth
+     * @param isMaximizing true if maximizing (AI's turn), false if minimizing (player's turn)
+     * @param alpha best value the maximizer can guarantee so far
+     * @param beta best value the minimizer can guarantee so far
+     * @return evaluation score for the current game state
+     */
+    private int minimax(int depth, boolean isMaximizing, int alpha, int beta) {
+        if (checkWinState(playerSettings.getPlayerTwoColor())) return 1000;
+        if (checkWinState(playerSettings.getPlayerOneColor())) return -1000;
+        if (depth == 0 || count == 42) return 0;
+
+        if (isMaximizing) {
+            int maxEval = Integer.MIN_VALUE;
+            for (int col = 0; col < cols; col++) {
+                if (!checkFullColumn(col)) {
+                    int row = getAvailableRow(col);
+                    circles[row][col].setFill(playerSettings.getPlayerTwoColor());
+
+                    int eval = minimax(depth - 1, false, alpha, beta);
+                    circles[row][col].setFill(Color.WHITE);
+                    maxEval = Math.max(maxEval, eval);
+                    alpha = Math.max(alpha, eval);
+                    if (beta <= alpha) break;
+                }
+            }
+            return maxEval;
+        } else {
+            int minEval = Integer.MAX_VALUE;
+            for (int col = 0; col < cols; col++) {
+                if (!checkFullColumn(col)) {
+                    int row = getAvailableRow(col);
+                    circles[row][col].setFill(playerSettings.getPlayerOneColor());
+
+                    int eval = minimax(depth - 1, true, alpha, beta);
+                    circles[row][col].setFill(Color.WHITE);
+                    minEval = Math.min(minEval, eval);
+                    beta = Math.min(beta, eval);
+                    if (beta <= alpha) break;
+                }
+            }
+            return minEval;
+        }
+    }
+    /**
+     * Finds the lowest available row in a specified column.
+     *
+     * @param col the column index
+     * @return the row index of the lowest empty cell, or -1 if full
+     */
+    private int getAvailableRow(int col) {
+        for (int row = rows - 1; row >= 0; row--) {
+            if (circles[row][col].getFill().equals(Color.WHITE)) {
+                return row;
+            }
+        }
+        return -1;
     }
     /**
      * checks to see if column is full
