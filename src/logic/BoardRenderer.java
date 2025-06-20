@@ -27,6 +27,7 @@ public class BoardRenderer {
 
     public GridPane createGrid() {
         GridPane grid = new GridPane();
+        grid.setAlignment(Pos.CENTER);
         grid.setHgap(10);
         grid.setVgap(10);
 
@@ -37,14 +38,15 @@ public class BoardRenderer {
 
                 Circle piece = new Circle(40, Color.WHITE);
                 piece.setStroke(Color.BLACK);
-
                 circles[row][col] = piece;
 
-                grid.add(background, col, row);
-                grid.add(piece, col, row);
+                // Wrap in StackPane to center-align
+                StackPane cell = new StackPane();
+                cell.getChildren().addAll(background, piece);
+
+                grid.add(cell, col, row);
             }
         }
-
         return grid;
     }
 
