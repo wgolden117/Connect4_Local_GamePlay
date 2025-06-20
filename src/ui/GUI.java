@@ -24,7 +24,6 @@ import javafx.stage.Window;
 /**
  * Class to implement a GUI
  */
-
 public class GUI extends Application {
     private final int rows = 6;
     private final int cols = 7;
@@ -44,7 +43,6 @@ public class GUI extends Application {
             t.printStackTrace();
         }
     }
-
     /**
      * start method that creates the GUI to ask the user
      * if they would like to play vs. another player
@@ -92,7 +90,6 @@ public class GUI extends Application {
         playerComputer.setOnAction(event -> updateGridPane(primaryStage, "Player vs. Computer"));
 
     } // closes start method
-
     /**
      * Creates the GameBoard with options to drop pieces
      *
@@ -102,6 +99,8 @@ public class GUI extends Application {
     public void updateGridPane(Stage primaryStage, String labelText) {
         // create GridPane
         GridPane grid = new GridPane();
+        playerSettings.playerOneColorProperty().addListener((obs, oldColor, newColor) -> refreshBoardColors());
+        playerSettings.playerTwoColorProperty().addListener((obs, oldColor, newColor) -> refreshBoardColors());
 
         grid.setAlignment(Pos.CENTER);
         grid.setHgap(10);
@@ -155,9 +154,6 @@ public class GUI extends Application {
                 grid.add(button, col, rows); // Re-add the buttons
             }
         }
-
-
-
         Scene scene = new Scene(vbox_two);
         primaryStage.setScene(scene);
         primaryStage.setTitle("Connect4");
@@ -167,9 +163,7 @@ public class GUI extends Application {
         primaryStage.setOnCloseRequest(event -> {
             closeApplication();
         });
-
     }
-
     /**
      * creates a method getButton to better organize the code
      *
@@ -200,7 +194,6 @@ public class GUI extends Application {
         });
         return button;
     }
-
     /**
      * Allows a player to drop a piece on the gameBoard
      * with the Drop button and checks the winState
@@ -221,8 +214,8 @@ public class GUI extends Application {
         // Find the next available row in the selected column
         for (int row = rows - 1; row >= 0; row--) {
             if (circles[row][col].getFill() == Color.WHITE) {
+                gameBoard[row][col] = currentPlayer; // Save player ID
                 circles[row][col].setFill(currentPlayer == 1 ? playerSettings.getPlayerOneColor() : playerSettings.getPlayerTwoColor());
-                // Only switch the player after a valid move
                 currentPlayer = currentPlayer == 1 ? 2 : 1;
                 break;
             }
@@ -243,6 +236,17 @@ public class GUI extends Application {
             displayMessage("It's a Draw!", true, labelText, col);
         }
     }
+    private void refreshBoardColors() {
+        for (int row = 0; row < rows; row++) {
+            for (int col = 0; col < cols; col++) {
+                if (gameBoard[row][col] == 1) {
+                    circles[row][col].setFill(playerSettings.getPlayerOneColor());
+                } else if (gameBoard[row][col] == 2) {
+                    circles[row][col].setFill(playerSettings.getPlayerTwoColor());
+                }
+            }
+        }
+    }
     /**
      * A method to allow the computer to randomly generate a move
      * without choosing a full column
@@ -257,7 +261,6 @@ public class GUI extends Application {
         } while (checkFullColumn(column));
         return column;
     }
-
     /**
      * checks to see if column is full
      *
@@ -272,7 +275,6 @@ public class GUI extends Application {
         }
         return true;
     }
-
     /**
      * check the win state of the GUI board
      *
@@ -389,7 +391,6 @@ public class GUI extends Application {
             }
         });
     }
-
     /**
      * Method to start the game over
      *
@@ -411,7 +412,6 @@ public class GUI extends Application {
         // Show the game board again
         updateGridPane(stage, labelText); // This will rebuild the game board with new event handlers
     }
-
     /**
      * method to close GUI and client
      */
