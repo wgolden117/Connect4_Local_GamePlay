@@ -1,29 +1,26 @@
 ### IntelliJ IDEA ###
-out/
-!**/src/main/**/out/
-!**/src/test/**/out/
+.idea/
+*.iml
 
-### Eclipse ###
-.apt_generated
-.classpath
-.factorypath
-.project
-.settings
-.springBeans
-.sts4-cache
+### Java / JavaFX / Build Artifacts ###
 bin/
-!**/src/main/**/bin/
-!**/src/test/**/bin/
+build/
+dist/
+runtime/
+app/Connect4_Local_GamePlay.jar
+*.class
+*.jar
+*.exe
+*.msi
 
-### NetBeans ###
-/nbproject/private/
-/nbbuild/
-/dist/
-/nbdist/
-/.nb-gradle/
+### Logs ###
+*.log
 
-### VS Code ###
-.vscode/
+### JPackage / Installer Output ###
+Connect4-*.exe
 
-### Mac OS ###
-.DS_Store
+### Windows ###
+Thumbs.db
+
+### META-INF ###
+src/META-INF/

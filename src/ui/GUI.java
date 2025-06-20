@@ -4,10 +4,7 @@ import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
-import javafx.scene.control.Alert;
-import javafx.scene.control.Button;
-import javafx.scene.control.ButtonType;
-import javafx.scene.control.Label;
+import javafx.scene.control.*;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
@@ -37,10 +34,15 @@ public class GUI extends Application {
     private int count = 0;
     private Runnable onCloseListener;
     private boolean gameOver = false;
-    private Button[] buttons = new Button[cols];
+    private final PlayerSettings playerSettings = new PlayerSettings();
 
     public static void main(String[] args) {
-        launch(args);
+        try {
+            System.out.println("Main() started");
+            launch(args);
+        } catch (Throwable t) {
+            t.printStackTrace();
+        }
     }
 
     /**
@@ -52,6 +54,7 @@ public class GUI extends Application {
      */
     @Override
     public void start(Stage primaryStage) {
+        System.out.println("Launching GUI...");
 
         Label labelSpace = new Label(" ");
         Label label = new Label("   Select Player to play against another player. Select Computer to play against the Computer  ");
@@ -111,6 +114,10 @@ public class GUI extends Application {
 
         VBox vbox_two = new VBox();
         vbox_two.setSpacing(20);
+        // Add Menu Bar
+        MenuFactory menuFactory = new MenuFactory(this::closeApplication, primaryStage, playerSettings);
+        MenuBar menuBar = menuFactory.createMenuBar();
+        vbox_two.getChildren().add(menuBar);
         vbox_two.getChildren().addAll(label_new, grid);
         vbox_two.setAlignment(Pos.CENTER);
 
@@ -148,6 +155,8 @@ public class GUI extends Application {
                 grid.add(button, col, rows); // Re-add the buttons
             }
         }
+
+
 
         Scene scene = new Scene(vbox_two);
         primaryStage.setScene(scene);
@@ -214,16 +223,13 @@ public class GUI extends Application {
         // Find the next available row in the selected column
         for (int row = rows - 1; row >= 0; row--) {
             if (circles[row][col].getFill() == Color.WHITE) {
-                circles[row][col].setFill(currentPlayer == 1 ? Color.RED : Color.FORESTGREEN);
-
+                circles[row][col].setFill(currentPlayer == 1 ? playerSettings.getPlayerOneColor() : playerSettings.getPlayerTwoColor());
                 // Only switch the player after a valid move
                 currentPlayer = currentPlayer == 1 ? 2 : 1;
                 break;
             }
         }
-
         count++;
-
         // Check for a win or a draw
         if (checkWinState(Color.RED)) {
             gameOver = true; // Set gameOver flag to true
