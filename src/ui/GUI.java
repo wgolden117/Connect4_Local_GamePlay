@@ -213,13 +213,11 @@ public class GUI extends Application {
         if (gameOver) {
             return; // Exit the method if the game is over
         }
-
         // Check if the column is full
         if (checkFullColumn(col)) {
             displayMessage("Column is full. Please choose another column.", false, labelText, col);
             return;
         }
-
         // Find the next available row in the selected column
         for (int row = rows - 1; row >= 0; row--) {
             if (circles[row][col].getFill() == Color.WHITE) {
@@ -230,19 +228,21 @@ public class GUI extends Application {
             }
         }
         count++;
-        // Check for a win or a draw
-        if (checkWinState(Color.RED)) {
-            gameOver = true; // Set gameOver flag to true
-            displayMessage("Red player Wins!", true, labelText, col);
-        } else if (checkWinState(Color.FORESTGREEN)) {
-            gameOver = true; // Set gameOver flag to true
-            displayMessage("Green player Wins!", true, labelText, col);
+        // Dynamically get the current win colors from settings
+        Color playerOneColor = playerSettings.getPlayerOneColor();
+        Color playerTwoColor = playerSettings.getPlayerTwoColor();
+
+        if (checkWinState(playerOneColor)) {
+            gameOver = true;
+            displayMessage("Player 1 Wins!", true, labelText, col);
+        } else if (checkWinState(playerTwoColor)) {
+            gameOver = true;
+            displayMessage("Player 2 Wins!", true, labelText, col);
         } else if (count == 42) {
-            gameOver = true; // Set gameOver flag to true
+            gameOver = true;
             displayMessage("It's a Draw!", true, labelText, col);
         }
     }
-
     /**
      * A method to allow the computer to randomly generate a move
      * without choosing a full column
@@ -330,7 +330,6 @@ public class GUI extends Application {
 
         return false; // No win state found
     }
-
     /**
      * Listen for window close
      *
