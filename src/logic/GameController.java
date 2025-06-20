@@ -5,7 +5,7 @@ import javafx.application.Platform;
 import javafx.scene.Scene;
 import javafx.scene.control.Alert;
 import javafx.scene.control.ButtonType;
-import javafx.scene.layout.VBox;
+import javafx.scene.layout.StackPane;
 import javafx.scene.paint.Color;
 import javafx.stage.Stage;
 import javafx.util.Duration;
@@ -48,7 +48,7 @@ public class GameController {
     }
 
     public void loadBoard(String labelText) {
-        Optional<VBox> optionalLayout = boardLayout.createBoardLayout(labelText, this);
+        Optional<StackPane> optionalLayout = boardLayout.createBoardLayout(labelText, this);
 
         if (optionalLayout.isEmpty()) {
             // User clicked "Cancel" on AI difficulty dialog after choosing to play again
@@ -58,7 +58,7 @@ public class GameController {
             return;
         }
 
-        VBox layout = optionalLayout.get();
+        StackPane layout = optionalLayout.get();
         Scene scene = new Scene(layout);
         stage.setScene(scene);
         stage.setTitle("Connect4");

@@ -1,34 +1,31 @@
 package logic;
 
 import javafx.animation.TranslateTransition;
+import javafx.application.Platform;
 import javafx.geometry.Bounds;
+import javafx.geometry.Point2D;
 import javafx.geometry.Pos;
 import javafx.scene.control.Button;
 import javafx.scene.layout.GridPane;
-import javafx.scene.layout.VBox;
+import javafx.scene.layout.StackPane;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
 import javafx.scene.shape.Rectangle;
 import javafx.util.Duration;
 
 public class BoardRenderer {
-    private final VBox root;
+    private final StackPane root;
     private final int rows = 6;
     private final int cols = 7;
     private final Circle[][] circles = new Circle[rows][cols];
     private Button[] buttons;
 
-    public BoardRenderer(VBox root) {
+    public BoardRenderer(StackPane root) {
         this.root = root;
     }
 
-    /**
-     * Creates and returns a GridPane representing the game board.
-     * Each cell contains a blue rectangle and an empty white circle.
-     */
     public GridPane createGrid() {
         GridPane grid = new GridPane();
-        grid.setAlignment(Pos.CENTER);
         grid.setHgap(10);
         grid.setVgap(10);
 
@@ -50,16 +47,10 @@ public class BoardRenderer {
         return grid;
     }
 
-    /**
-     * Allows the layout manager to provide button references for enabling/disabling.
-     */
     public void setButtons(Button[] buttons) {
         this.buttons = buttons;
     }
 
-    /**
-     * Enables or disables the drop buttons.
-     */
     public void setButtonsDisabled(boolean disabled) {
         if (buttons != null) {
             for (Button button : buttons) {
@@ -68,44 +59,43 @@ public class BoardRenderer {
         }
     }
 
-    /**
-     * Sets the color of a specific board cell.
-     */
     public void setPiece(int row, int col, Color color) {
         if (row >= 0 && row < rows && col >= 0 && col < cols) {
             circles[row][col].setFill(color);
         }
     }
 
-    /**
-     * Animates a disc falling into place on the board.
-     */
     public void animateDrop(int col, int row, Color color, Runnable onFinish) {
         Circle target = circles[row][col];
-        Bounds bounds = target.localToScene(target.getBoundsInLocal());
 
-        Circle falling = new Circle(target.getRadius(), color);
-        falling.setStroke(Color.BLACK);
-        falling.setTranslateX(bounds.getMinX());
-        falling.setTranslateY(bounds.getMinY() - (row + 2) * 90);
+        Platform.runLater(() -> {
+            // Create falling circle with same radius and color
+            Circle falling = new Circle(target.getRadius(), color);
+            falling.setStroke(Color.BLACK);
 
-        root.getChildren().add(falling);
+            // Position it visually over the correct cell
+            StackPane.setAlignment(falling, Pos.TOP_LEFT);
 
-        TranslateTransition transition = new TranslateTransition(Duration.millis(400), falling);
-        transition.setToX(bounds.getMinX());
-        transition.setToY(bounds.getMinY());
+            Bounds targetBounds = target.localToScene(target.getBoundsInLocal());
+            Point2D localPoint = root.sceneToLocal(targetBounds.getMinX(), targetBounds.getMinY());
 
-        transition.setOnFinished(e -> {
-            root.getChildren().remove(falling);
-            onFinish.run();
+            falling.setTranslateX(localPoint.getX());
+            falling.setTranslateY(-500); // Start above the board
+
+            root.getChildren().add(falling);
+
+            TranslateTransition transition = new TranslateTransition(Duration.millis(550), falling);
+            transition.setToY(localPoint.getY());
+
+            transition.setOnFinished(e -> {
+                root.getChildren().remove(falling);
+                onFinish.run();
+            });
+
+            transition.play();
         });
-
-        transition.play();
     }
 
-    /**
-     * Refreshes all the pieces on the board based on the current game state.
-     */
     public void refreshColors(int[][] board, Color p1Color, Color p2Color) {
         for (int row = 0; row < board.length; row++) {
             for (int col = 0; col < board[0].length; col++) {

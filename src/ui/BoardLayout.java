@@ -18,14 +18,17 @@ public class BoardLayout {
         this.playerSettings = playerSettings;
     }
 
-    public Optional<VBox> createBoardLayout(String labelText, GameController controller) {
-        VBox root = new VBox(); // Fresh VBox each time!
-        BoardRenderer boardRenderer = new BoardRenderer(root); // Fresh BoardRenderer tied to root
+    public Optional<StackPane> createBoardLayout(String labelText, GameController controller) {
+        StackPane root = new StackPane(); // Allows animation layering
+        root.setPrefSize(800, 800); // Or adjust to fit window size
+
+        BoardRenderer boardRenderer = new BoardRenderer(root); // Constructor must accept StackPane now
 
         GridPane grid = boardRenderer.createGrid();
         grid.setHgap(10);
         grid.setVgap(10);
         grid.setAlignment(Pos.CENTER);
+        grid.setMaxSize(Region.USE_COMPUTED_SIZE, Region.USE_COMPUTED_SIZE);
 
         // Reactively update colors when player preferences change
         playerSettings.playerOneColorProperty().addListener((obs, oldColor, newColor) ->
@@ -45,9 +48,13 @@ public class BoardLayout {
         MenuFactory menuFactory = new MenuFactory(controller::closeApplication, controller.getStage(), playerSettings);
         MenuBar menuBar = menuFactory.createMenuBar();
 
-        root.setSpacing(20);
-        root.setAlignment(Pos.CENTER);
-        root.getChildren().addAll(menuBar, label, grid);
+        // VBox for visual stacking
+        VBox vbox = new VBox(20);
+        vbox.setAlignment(Pos.CENTER);
+        vbox.getChildren().addAll(menuBar, label, grid);
+
+        // Add VBox to StackPane root (for layering animations on top)
+        root.getChildren().add(vbox);
 
         Button[] buttons = new Button[7];
 
@@ -78,6 +85,7 @@ public class BoardLayout {
 
         return Optional.of(root);
     }
+
 
     private void setupPlayerVsPlayer(GridPane grid, GameController controller, String labelText, Button[] buttons) {
         for (int col = 0; col < 7; col++) {
