@@ -1,9 +1,13 @@
 package logic;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class GameLogic {
     private final int rows = 6;
     private final int cols = 7;
     private final int[][] board;
+    private List<int[]> winningPositions = new ArrayList<>();
 
     public GameLogic() {
         board = new int[rows][cols];
@@ -11,6 +15,10 @@ public class GameLogic {
 
     public int[][] getBoard() {
         return board;
+    }
+
+    public List<int[]> getWinningPositions() {
+        return winningPositions;
     }
 
     public boolean isColumnFull(int col) {
@@ -36,6 +44,8 @@ public class GameLogic {
     }
 
     public boolean checkWinState(int player) {
+        winningPositions.clear();
+
         // Horizontal
         for (int row = 0; row < rows; row++) {
             for (int col = 0; col <= cols - 4; col++) {
@@ -43,6 +53,13 @@ public class GameLogic {
                         board[row][col + 1] == player &&
                         board[row][col + 2] == player &&
                         board[row][col + 3] == player) {
+
+                    winningPositions.addAll(List.of(
+                            new int[]{row, col},
+                            new int[]{row, col + 1},
+                            new int[]{row, col + 2},
+                            new int[]{row, col + 3}
+                    ));
                     return true;
                 }
             }
@@ -55,6 +72,13 @@ public class GameLogic {
                         board[row + 1][col] == player &&
                         board[row + 2][col] == player &&
                         board[row + 3][col] == player) {
+
+                    winningPositions.addAll(List.of(
+                            new int[]{row, col},
+                            new int[]{row + 1, col},
+                            new int[]{row + 2, col},
+                            new int[]{row + 3, col}
+                    ));
                     return true;
                 }
             }
@@ -67,6 +91,13 @@ public class GameLogic {
                         board[row - 1][col + 1] == player &&
                         board[row - 2][col + 2] == player &&
                         board[row - 3][col + 3] == player) {
+
+                    winningPositions.addAll(List.of(
+                            new int[]{row, col},
+                            new int[]{row - 1, col + 1},
+                            new int[]{row - 2, col + 2},
+                            new int[]{row - 3, col + 3}
+                    ));
                     return true;
                 }
             }
@@ -79,6 +110,13 @@ public class GameLogic {
                         board[row + 1][col + 1] == player &&
                         board[row + 2][col + 2] == player &&
                         board[row + 3][col + 3] == player) {
+
+                    winningPositions.addAll(List.of(
+                            new int[]{row, col},
+                            new int[]{row + 1, col + 1},
+                            new int[]{row + 2, col + 2},
+                            new int[]{row + 3, col + 3}
+                    ));
                     return true;
                 }
             }
@@ -86,6 +124,7 @@ public class GameLogic {
 
         return false;
     }
+
 
     public boolean isBoardFull() {
         for (int col = 0; col < cols; col++) {

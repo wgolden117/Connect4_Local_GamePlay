@@ -12,6 +12,7 @@ import javafx.util.Duration;
 import ui.BoardLayout;
 import ui.PlayerSettings;
 
+import java.util.List;
 import java.util.Optional;
 
 /**
@@ -68,7 +69,7 @@ public class GameController {
 
     public void dropPiece(int col, String labelText) {
         if (gameState.isGameOver() || gameLogic.isColumnFull(col)) {
-            displayMessage("Column is full or game over.", false, labelText);
+            displayMessage("Column is full. Please choose another column!", false, labelText);
             return;
         }
 
@@ -98,6 +99,10 @@ public class GameController {
             if (gameLogic.checkWinState(currentPlayer)) {
                 gameState.setGameOver(true);
                 displayMessage("Player " + currentPlayer + " Wins!", true, labelText);
+
+                // Highlight the winning positions
+                List<int[]> winPositions = gameLogic.getWinningPositions();
+                boardRenderer.highlightWinningLine(winPositions, currentColor);
             } else if (gameState.getMoveCount() == 42 || gameLogic.isBoardFull()) {
                 gameState.setGameOver(true);
                 displayMessage("It's a Draw!", true, labelText);

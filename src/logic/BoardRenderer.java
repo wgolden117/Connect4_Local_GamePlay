@@ -1,7 +1,6 @@
 package logic;
 
-import javafx.animation.SequentialTransition;
-import javafx.animation.TranslateTransition;
+import javafx.animation.*;
 import javafx.application.Platform;
 import javafx.geometry.Bounds;
 import javafx.geometry.Point2D;
@@ -16,6 +15,8 @@ import javafx.util.Duration;
 import javafx.scene.media.AudioClip;
 
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.List;
 
 public class BoardRenderer {
     private final StackPane root;
@@ -41,6 +42,7 @@ public class BoardRenderer {
 
                 Circle piece = new Circle(40, Color.WHITE);
                 piece.setStroke(Color.BLACK);
+                piece.setStrokeWidth(5);
                 circles[row][col] = piece;
 
                 // Wrap in StackPane to center-align
@@ -103,24 +105,33 @@ public class BoardRenderer {
             TranslateTransition drop = new TranslateTransition(Duration.millis(450), falling);
             drop.setToY(localPoint.getY());
 
-            // Small bounce up
+            // First bounce up (strongest)
             TranslateTransition bounceUp = new TranslateTransition(Duration.millis(100), falling);
-            bounceUp.setToY(localPoint.getY() - 10);
+            bounceUp.setToY(localPoint.getY() - 12);
 
-            // Settle back down
+            // Settle
             TranslateTransition settle = new TranslateTransition(Duration.millis(100), falling);
             settle.setToY(localPoint.getY());
 
             // Second smaller bounce
             TranslateTransition bounceUp2 = new TranslateTransition(Duration.millis(80), falling);
-            bounceUp2.setToY(localPoint.getY() - 5);
+            bounceUp2.setToY(localPoint.getY() - 6);
 
+            // Settle again
             TranslateTransition settle2 = new TranslateTransition(Duration.millis(80), falling);
             settle2.setToY(localPoint.getY());
 
-            // Chain all together
+            // Third tiny bounce
+            TranslateTransition bounceUp3 = new TranslateTransition(Duration.millis(60), falling);
+            bounceUp3.setToY(localPoint.getY() - 3);
+
+            // Final settle
+            TranslateTransition settle3 = new TranslateTransition(Duration.millis(60), falling);
+            settle3.setToY(localPoint.getY());
+
+            // Chain the full sequence
             SequentialTransition sequence = new SequentialTransition(
-                    drop, bounceUp, settle, bounceUp2, settle2
+                    drop, bounceUp, settle, bounceUp2, settle2, bounceUp3, settle3
             );
 
             sequence.setOnFinished(e -> {
@@ -141,6 +152,43 @@ public class BoardRenderer {
                     default -> circles[row][col].setFill(Color.WHITE);
                 }
             }
+        }
+    }
+    public void highlightWinningLine(List<int[]> winningCoords, Color playerColor) {
+        Color flashColor = getContrastingColor(playerColor);
+        List<FillTransition> transitions = new ArrayList<>();
+
+        for (int[] pos : winningCoords) {
+            int row = pos[0];
+            int col = pos[1];
+            Circle circle = circles[row][col];
+
+            FillTransition flash = new FillTransition(Duration.millis(300), circle);
+            flash.setFromValue(playerColor);
+            flash.setToValue(flashColor);
+            flash.setCycleCount(Animation.INDEFINITE);
+            flash.setAutoReverse(true);
+            flash.play();
+
+            transitions.add(flash);
+        }
+        // Stop flashing after 5 seconds
+        PauseTransition stopFlashing = new PauseTransition(Duration.seconds(3));
+        stopFlashing.setOnFinished(e -> transitions.forEach(Animation::stop));
+        stopFlashing.play();
+    }
+
+    private Color getContrastingColor(Color baseColor) {
+        // Convert to luminance
+        double luminance = 0.2126 * baseColor.getRed() +
+                0.7152 * baseColor.getGreen() +
+                0.0722 * baseColor.getBlue();
+
+        // If it's a light color (like yellow), return a dark outline (e.g., black)
+        if (luminance > 0.6) {
+            return Color.BLACK;
+        } else {
+            return Color.YELLOW;
         }
     }
 }

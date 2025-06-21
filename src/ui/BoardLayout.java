@@ -1,5 +1,6 @@
 package ui;
 
+import javafx.geometry.HPos;
 import javafx.geometry.Pos;
 import javafx.scene.control.*;
 import javafx.scene.layout.*;
@@ -93,6 +94,7 @@ public class BoardLayout {
             button.setOnAction(e -> controller.dropPiece(finalCol, labelText));
             buttons[col] = button;
             grid.add(button, col, 6);
+            GridPane.setHalignment(button, HPos.CENTER); // Center the button in the cell
         }
     }
 
@@ -103,6 +105,7 @@ public class BoardLayout {
             button.setOnAction(e -> controller.dropPiece(finalCol, labelText));
             buttons[col] = button;
             grid.add(button, col, 6);
+            GridPane.setHalignment(button, HPos.CENTER); // Center the button in the cell
         }
     }
 }
