@@ -32,7 +32,7 @@ public class GameController {
     private BoardRenderer boardRenderer;
     private MediaPlayer backgroundPlayer;
     private boolean dropSoundEnabled = true;
-
+    private Runnable triggerConfetti;
 
     public GameController(Stage primaryStage) {
         this.stage = primaryStage; // <-- THIS fixes the problem
@@ -59,6 +59,10 @@ public class GameController {
 
     public void setAIPlayer(AIPlayer aiPlayer) {
         this.aiPlayer = aiPlayer;
+    }
+
+    public void setConfettiHandlers(Runnable triggerConfetti, Runnable stopConfetti) {
+        this.triggerConfetti = triggerConfetti;
     }
 
     public void playDropSound() {
@@ -126,10 +130,11 @@ public class GameController {
             if (gameLogic.checkWinState(currentPlayer)) {
                 gameState.setGameOver(true);
                 displayMessage("Player " + currentPlayer + " Wins!", true, labelText);
-
                 // Highlight the winning positions
                 List<int[]> winPositions = gameLogic.getWinningPositions();
                 boardRenderer.highlightWinningLine(winPositions, currentColor);
+                // Start confetti
+                if (triggerConfetti != null) triggerConfetti.run();
             } else if (gameState.getMoveCount() == 42 || gameLogic.isBoardFull()) {
                 gameState.setGameOver(true);
                 displayMessage("It's a Draw!", true, labelText);

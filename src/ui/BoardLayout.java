@@ -1,18 +1,31 @@
 package ui;
 
+import javafx.animation.*;
 import javafx.geometry.HPos;
 import javafx.geometry.Pos;
 import javafx.scene.control.*;
 import javafx.scene.layout.*;
+import javafx.scene.paint.Color;
+import javafx.scene.shape.Rectangle;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontPosture;
 import javafx.scene.text.FontWeight;
+import javafx.scene.shape.Path;
+import javafx.scene.shape.MoveTo;
+import javafx.scene.shape.QuadCurveTo;
+import javafx.animation.PathTransition;
+import javafx.animation.RotateTransition;
+
+import javafx.util.Duration;
 import logic.*;
-import java.util.Optional;
+
+import java.util.*;
 
 public class BoardLayout {
     private final GameLogic gameLogic;
     private final PlayerSettings playerSettings;
+    private final List<Animation> activeConfettiAnimations = new ArrayList<>();
+    private final Random random = new Random();
 
     public BoardLayout(GameLogic gameLogic, PlayerSettings playerSettings) {
         this.gameLogic = gameLogic;
@@ -45,7 +58,6 @@ public class BoardLayout {
 
         // Menu bar
         MenuFactory menuFactory = new MenuFactory(controller::closeApplication, controller.getStage(), playerSettings, controller);
-
         MenuBar menuBar = menuFactory.createMenuBar();
 
         // Title label + grid in center VBox
@@ -84,6 +96,7 @@ public class BoardLayout {
 
         boardRenderer.setButtons(buttons);
         controller.setBoardRenderer(boardRenderer);
+        controller.setConfettiHandlers(() -> startConfettiAnimation(root), this::stopConfettiAnimation);
 
         return Optional.of(root);
     }
@@ -95,7 +108,7 @@ public class BoardLayout {
             button.setOnAction(e -> controller.dropPiece(finalCol, labelText));
             buttons[col] = button;
             grid.add(button, col, 6);
-            GridPane.setHalignment(button, HPos.CENTER); // Center the button in the cell
+            GridPane.setHalignment(button, HPos.CENTER);
         }
     }
 
@@ -106,7 +119,54 @@ public class BoardLayout {
             button.setOnAction(e -> controller.dropPiece(finalCol, labelText));
             buttons[col] = button;
             grid.add(button, col, 6);
-            GridPane.setHalignment(button, HPos.CENTER); // Center the button in the cell
+            GridPane.setHalignment(button, HPos.CENTER);
         }
+    }
+
+    public void startConfettiAnimation(StackPane root) {
+        Timeline timeline = new Timeline(new KeyFrame(Duration.millis(250), e -> {
+            for (int i = 0; i < 5; i++) { // Drop 5 confetti at once per tick
+                double width = 4 + random.nextDouble() * 4;
+                double height = 8 + random.nextDouble() * 4;
+                Rectangle confetti = new Rectangle(width, height, Color.color(random.nextDouble(), random.nextDouble(), random.nextDouble()));
+                confetti.setTranslateX(random.nextDouble() * root.getWidth() - root.getWidth() / 2);
+                confetti.setTranslateY(-root.getHeight() / 2 - 20 - random.nextDouble() * 30); // Start above top
+
+                root.getChildren().add(confetti);
+
+                // Crazy falling path
+                Path path = new Path();
+                path.getElements().add(new MoveTo(confetti.getTranslateX(), confetti.getTranslateY()));
+                double controlX = confetti.getTranslateX() + (random.nextDouble() - 0.5) * 100;
+                double controlY = root.getHeight() / 2 + random.nextDouble() * 100;
+                double endX = confetti.getTranslateX() + (random.nextDouble() - 0.5) * 100;
+                double endY = root.getHeight();
+
+                path.getElements().add(new QuadCurveTo(controlX, controlY, endX, endY));
+
+                PathTransition fall = new PathTransition(Duration.seconds(3 + random.nextDouble()), path, confetti);
+                fall.setInterpolator(Interpolator.EASE_OUT);
+
+                RotateTransition spin = new RotateTransition(Duration.seconds(3), confetti);
+                spin.setByAngle(360);
+                spin.setCycleCount(Animation.INDEFINITE);
+
+                ParallelTransition drop = new ParallelTransition(confetti, fall, spin);
+                drop.setOnFinished(ev -> root.getChildren().remove(confetti));
+                drop.play();
+
+                activeConfettiAnimations.add(drop);
+            }
+        }));
+
+        timeline.setCycleCount(Animation.INDEFINITE);
+        timeline.play();
+        activeConfettiAnimations.add(timeline);
+    }
+
+
+    public void stopConfettiAnimation() {
+        activeConfettiAnimations.forEach(Animation::stop);
+        activeConfettiAnimations.clear();
     }
 }
