@@ -2,12 +2,13 @@ package logic;
 
 import javafx.animation.*;
 import javafx.application.Platform;
+import javafx.beans.binding.Bindings;
 import javafx.geometry.Bounds;
 import javafx.geometry.Point2D;
 import javafx.geometry.Pos;
+import javafx.scene.CacheHint;
 import javafx.scene.control.Button;
-import javafx.scene.layout.GridPane;
-import javafx.scene.layout.StackPane;
+import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
 import javafx.scene.shape.Rectangle;
@@ -29,26 +30,55 @@ public class BoardRenderer {
     public GridPane createGrid() {
         GridPane grid = new GridPane();
         grid.setAlignment(Pos.CENTER);
-        grid.setHgap(10);
-        grid.setVgap(10);
+        grid.setHgap(2);
+        grid.setVgap(2);
+        grid.setMinSize(0, 0);
+        grid.setMaxSize(Double.MAX_VALUE, Double.MAX_VALUE);
+
+        // Ensure the GridPane grows dynamically
+        grid.prefWidthProperty().bind(root.widthProperty());
+        grid.prefHeightProperty().bind(root.heightProperty().multiply(0.75)); // Leave room for controls
 
         for (int row = 0; row < rows; row++) {
             for (int col = 0; col < cols; col++) {
-                Rectangle background = new Rectangle(90, 90);
-                background.setFill(Color.BLUE);
+                StackPane cell = new StackPane();
+                cell.setMinSize(0, 0);
+                cell.setMaxSize(Double.MAX_VALUE, Double.MAX_VALUE);
 
-                Circle piece = new Circle(40, Color.WHITE);
+                Rectangle background = new Rectangle();
+                background.setFill(Color.BLUE);
+                background.widthProperty().bind(cell.widthProperty());
+                background.heightProperty().bind(cell.heightProperty());
+
+                Circle piece = new Circle();
+                piece.setFill(Color.WHITE);
                 piece.setStroke(Color.BLACK);
-                piece.setStrokeWidth(5);
+                piece.setStrokeWidth(3);
+                piece.radiusProperty().bind(
+                        Bindings.createDoubleBinding(() ->
+                                        Math.min(cell.getWidth(), cell.getHeight()) * 0.4,
+                                cell.widthProperty(), cell.heightProperty())
+                );
+
                 circles[row][col] = piece;
 
-                // Wrap in StackPane to center-align
-                StackPane cell = new StackPane();
                 cell.getChildren().addAll(background, piece);
-
                 grid.add(cell, col, row);
             }
+
+            RowConstraints rc = new RowConstraints();
+            rc.setPercentHeight(100.0 / rows);
+            rc.setVgrow(Priority.ALWAYS);
+            grid.getRowConstraints().add(rc);
         }
+
+        for (int col = 0; col < cols; col++) {
+            ColumnConstraints cc = new ColumnConstraints();
+            cc.setPercentWidth(100.0 / cols);
+            cc.setHgrow(Priority.ALWAYS);
+            grid.getColumnConstraints().add(cc);
+        }
+
         return grid;
     }
 
@@ -77,49 +107,58 @@ public class BoardRenderer {
             // Create falling circle with same radius and color
             Circle falling = new Circle(target.getRadius(), color);
             falling.setStroke(Color.BLACK);
+            falling.setCache(true); // Performance optimization
+            falling.setCacheHint(CacheHint.SPEED);
 
-            // Position it visually over the correct cell
+            // Position visually over the cell
             StackPane.setAlignment(falling, Pos.TOP_LEFT);
 
             Bounds targetBounds = target.localToScene(target.getBoundsInLocal());
             Point2D localPoint = root.sceneToLocal(targetBounds.getMinX(), targetBounds.getMinY());
 
+            // Starting position (500px above)
+            double startY = -500;
+            double endY = localPoint.getY();
+            double distance = endY - startY;
+            double speed = 2.5; // pixels per millisecond
+            Duration dropDuration = Duration.millis(distance / speed);
+
             falling.setTranslateX(localPoint.getX());
-            falling.setTranslateY(-500); // Start above the board
+            falling.setTranslateY(startY);
 
             root.getChildren().add(falling);
 
-            // Main drop transition
-            TranslateTransition drop = new TranslateTransition(Duration.millis(450), falling);
-            drop.setToY(localPoint.getY());
+            // Main drop
+            TranslateTransition drop = new TranslateTransition(dropDuration, falling);
+            drop.setToY(endY);
+            drop.setInterpolator(Interpolator.EASE_OUT);
 
-            // First bounce up (strongest)
+            // Bounce durations scaled down relative to screen
+            double bounceOffset1 = 12;
+            double bounceOffset2 = 6;
+            double bounceOffset3 = 3;
+
             TranslateTransition bounceUp = new TranslateTransition(Duration.millis(100), falling);
-            bounceUp.setToY(localPoint.getY() - 12);
+            bounceUp.setToY(endY - bounceOffset1);
 
-            // Settle
-            TranslateTransition settle = new TranslateTransition(Duration.millis(100), falling);
-            settle.setToY(localPoint.getY());
+            TranslateTransition settle1 = new TranslateTransition(Duration.millis(100), falling);
+            settle1.setToY(endY);
 
-            // Second smaller bounce
             TranslateTransition bounceUp2 = new TranslateTransition(Duration.millis(80), falling);
-            bounceUp2.setToY(localPoint.getY() - 6);
+            bounceUp2.setToY(endY - bounceOffset2);
 
-            // Settle again
             TranslateTransition settle2 = new TranslateTransition(Duration.millis(80), falling);
-            settle2.setToY(localPoint.getY());
+            settle2.setToY(endY);
 
-            // Third tiny bounce
             TranslateTransition bounceUp3 = new TranslateTransition(Duration.millis(60), falling);
-            bounceUp3.setToY(localPoint.getY() - 3);
+            bounceUp3.setToY(endY - bounceOffset3);
 
-            // Final settle
             TranslateTransition settle3 = new TranslateTransition(Duration.millis(60), falling);
-            settle3.setToY(localPoint.getY());
+            settle3.setToY(endY);
 
-            // Chain the full sequence
+            // Chain all
             SequentialTransition sequence = new SequentialTransition(
-                    drop, bounceUp, settle, bounceUp2, settle2, bounceUp3, settle3
+                    drop, bounceUp, settle1, bounceUp2, settle2, bounceUp3, settle3
             );
 
             sequence.setOnFinished(e -> {
@@ -130,6 +169,7 @@ public class BoardRenderer {
             sequence.play();
         });
     }
+
 
     public void refreshColors(int[][] board, Color p1Color, Color p2Color) {
         for (int row = 0; row < board.length; row++) {

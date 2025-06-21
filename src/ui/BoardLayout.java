@@ -2,6 +2,7 @@ package ui;
 
 import javafx.animation.*;
 import javafx.geometry.HPos;
+import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.*;
 import javafx.scene.layout.*;
@@ -62,9 +63,11 @@ public class BoardLayout {
 
         // Title label + grid in center VBox
         Label label = new Label(" " + labelText + " ");
-        label.setFont(Font.font("Courier", FontWeight.BOLD, FontPosture.ITALIC, 15));
-        VBox centerBox = new VBox(20, label, grid);
-        centerBox.setAlignment(Pos.CENTER);
+        label.setFont(Font.font("Ariel", FontWeight.BOLD, FontPosture.ITALIC, 22));
+        VBox centerBox = new VBox(50);
+        centerBox.setAlignment(Pos.TOP_CENTER);
+        VBox.setMargin(label, new Insets(40, 0, 0, 0)); // top/right/bottom/left padding
+        centerBox.getChildren().addAll(label, grid);
 
         // Wrap with BorderPane to pin the menuBar to the top
         BorderPane layout = new BorderPane();
@@ -113,7 +116,7 @@ public class BoardLayout {
             // Add number label below each button
             Label numberLabel = new Label(String.valueOf(col + 1));
             numberLabel.setStyle("-fx-font-weight: bold;");
-            numberLabel.setFont(Font.font("Arial", FontWeight.BOLD, 14));
+            numberLabel.setFont(Font.font("Arial", FontWeight.BOLD, 30));
             grid.add(numberLabel, col, 7); // Row 7 for numbers
             GridPane.setHalignment(numberLabel, HPos.CENTER);
         }

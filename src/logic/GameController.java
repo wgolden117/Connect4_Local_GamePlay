@@ -87,13 +87,20 @@ public class GameController {
             }
             return;
         }
-
         StackPane layout = optionalLayout.get();
         Scene scene = new Scene(layout);
         stage.setScene(scene);
         stage.setTitle("Connect4");
         stage.setOnCloseRequest(e -> closeApplication());
         stage.show();
+
+        Platform.runLater(() -> {
+            layout.applyCss();
+            layout.layout();
+            stage.sizeToScene();
+            stage.getScene().getRoot().requestLayout();
+        });
+
     }
 
     public void dropPiece(int col, String labelText) {
