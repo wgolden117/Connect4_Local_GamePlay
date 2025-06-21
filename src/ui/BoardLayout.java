@@ -37,7 +37,16 @@ public class BoardLayout {
         StackPane root = new StackPane(); // For animation overlay
         root.setPrefSize(800, 800);
 
-        BoardRenderer boardRenderer = new BoardRenderer(root);
+        // --- New rolling piece container at bottom ---
+        HBox rollingPieceContainer = new HBox();
+        rollingPieceContainer.setSpacing(10);
+        rollingPieceContainer.setAlignment(Pos.CENTER);
+        rollingPieceContainer.setPrefHeight(200);
+        rollingPieceContainer.setPadding(new Insets(10, 0, 10, 0)); // Add some breathing room
+        rollingPieceContainer.setStyle("-fx-background-color: transparent;");
+        rollingPieceContainer.setSpacing(15);
+        // Updated constructor to pass rolling container
+        BoardRenderer boardRenderer = new BoardRenderer(root, playerSettings, rollingPieceContainer);
 
         GridPane grid = boardRenderer.createGrid();
         grid.setHgap(10);
@@ -61,18 +70,20 @@ public class BoardLayout {
         MenuFactory menuFactory = new MenuFactory(controller::closeApplication, controller.getStage(), playerSettings, controller);
         MenuBar menuBar = menuFactory.createMenuBar();
 
-        // Title label + grid in center VBox
         Label label = new Label(" " + labelText + " ");
         label.setFont(Font.font("Ariel", FontWeight.BOLD, FontPosture.ITALIC, 22));
-        VBox centerBox = new VBox(50);
+        VBox.setMargin(label, new Insets(40, 0, 0, 0));
+
+        VBox centerBox = new VBox(30);
         centerBox.setAlignment(Pos.TOP_CENTER);
-        VBox.setMargin(label, new Insets(40, 0, 0, 0)); // top/right/bottom/left padding
+        VBox.setVgrow(centerBox, Priority.ALWAYS);
         centerBox.getChildren().addAll(label, grid);
 
-        // Wrap with BorderPane to pin the menuBar to the top
+        // Wrap with BorderPane to pin UI pieces
         BorderPane layout = new BorderPane();
-        layout.setTop(menuBar);      // MenuBar stays fixed at top
-        layout.setCenter(centerBox); // Game content goes center
+        layout.setTop(menuBar);
+        layout.setCenter(centerBox);
+        layout.setBottom(rollingPieceContainer);
 
         // Add layout to root (for animation layering)
         root.getChildren().add(layout);
@@ -99,10 +110,12 @@ public class BoardLayout {
 
         boardRenderer.setButtons(buttons);
         controller.setBoardRenderer(boardRenderer);
+        boardRenderer.startRollingPieceAnimation(); // Rolling starts
         controller.setConfettiHandlers(() -> startConfettiAnimation(root), this::stopConfettiAnimation);
 
         return Optional.of(root);
     }
+
 
     private void setupPlayerVsPlayer(GridPane grid, GameController controller, String labelText, Button[] buttons) {
         for (int col = 0; col < 7; col++) {

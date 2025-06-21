@@ -13,6 +13,8 @@ import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
 import javafx.scene.shape.Rectangle;
 import javafx.util.Duration;
+import ui.PlayerSettings;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -22,9 +24,14 @@ public class BoardRenderer {
     private final int cols = 7;
     private final Circle[][] circles = new Circle[rows][cols];
     private Button[] buttons;
+    private final PlayerSettings playerSettings;
+    private final List<TranslateTransition> rollingTransitions = new ArrayList<>();
+    private final HBox rollingContainer;
 
-    public BoardRenderer(StackPane root) {
+    public BoardRenderer(StackPane root, PlayerSettings playerSettings, HBox rollingContainer) {
         this.root = root;
+        this.playerSettings = playerSettings;
+        this.rollingContainer = rollingContainer;
     }
 
     public GridPane createGrid() {
@@ -218,5 +225,48 @@ public class BoardRenderer {
         } else {
             return Color.YELLOW;
         }
+    }
+
+    public void startRollingPieceAnimation() {
+        Platform.runLater(() -> {
+            rollingTransitions.clear();
+            rollingContainer.getChildren().clear(); // clear old pieces
+
+            int totalPieces = 12;
+            double radius = 25;
+
+            for (int i = 0; i < totalPieces; i++) {
+                boolean isPlayerOne = i < 6;
+                Color color = isPlayerOne ? playerSettings.getPlayerOneColor() : playerSettings.getPlayerTwoColor();
+
+                Circle piece = new Circle(radius, color);
+                piece.setStroke(Color.BLACK);
+                piece.setStrokeWidth(2);
+
+                rollingContainer.getChildren().add(piece);
+
+                // Horizontal oscillating movement
+                TranslateTransition move = new TranslateTransition(Duration.seconds(2 + Math.random() * 2), piece);
+                move.setFromX(-10);
+                move.setToX(10);
+                move.setCycleCount(Animation.INDEFINITE);
+                move.setAutoReverse(true);
+
+                // Bounce up and down
+                TranslateTransition bounce = new TranslateTransition(Duration.seconds(0.4), piece);
+                bounce.setFromY(0);
+                bounce.setToY(-10);
+                bounce.setCycleCount(Animation.INDEFINITE);
+                bounce.setAutoReverse(true);
+
+                // Spin for fun
+                RotateTransition spin = new RotateTransition(Duration.seconds(4 + Math.random() * 2), piece);
+                spin.setByAngle(isPlayerOne ? 360 : -360);
+                spin.setCycleCount(Animation.INDEFINITE);
+                spin.setAutoReverse(true);
+
+                new ParallelTransition(move, bounce, spin).play();
+            }
+        });
     }
 }
