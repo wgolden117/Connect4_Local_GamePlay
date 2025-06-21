@@ -151,7 +151,7 @@ public class BoardRenderer {
             int col = pos[1];
             Circle circle = circles[row][col];
 
-            FillTransition flash = new FillTransition(Duration.millis(300), circle);
+            FillTransition flash = new FillTransition(Duration.millis(600), circle);
             flash.setFromValue(playerColor);
             flash.setToValue(flashColor);
             flash.setCycleCount(Animation.INDEFINITE);

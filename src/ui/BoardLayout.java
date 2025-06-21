@@ -107,8 +107,15 @@ public class BoardLayout {
             int finalCol = col;
             button.setOnAction(e -> controller.dropPiece(finalCol, labelText));
             buttons[col] = button;
-            grid.add(button, col, 6);
+            grid.add(button, col, 6); // Buttons row
             GridPane.setHalignment(button, HPos.CENTER);
+
+            // Add number label below each button
+            Label numberLabel = new Label(String.valueOf(col + 1));
+            numberLabel.setStyle("-fx-font-weight: bold;");
+            numberLabel.setFont(Font.font("Arial", FontWeight.BOLD, 14));
+            grid.add(numberLabel, col, 7); // Row 7 for numbers
+            GridPane.setHalignment(numberLabel, HPos.CENTER);
         }
     }
 
@@ -120,6 +127,12 @@ public class BoardLayout {
             buttons[col] = button;
             grid.add(button, col, 6);
             GridPane.setHalignment(button, HPos.CENTER);
+
+            Label numberLabel = new Label(String.valueOf(col + 1));
+            numberLabel.setFont(Font.font("Arial", FontWeight.BOLD, 30));
+            numberLabel.setStyle("-fx-font-weight: bold;");
+            grid.add(numberLabel, col, 7);
+            GridPane.setHalignment(numberLabel, HPos.CENTER);
         }
     }
 
