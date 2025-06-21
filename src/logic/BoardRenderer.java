@@ -96,7 +96,7 @@ public class BoardRenderer {
                 AudioClip clip = new AudioClip(soundURL.toString());
                 clip.play();
             } else {
-                System.err.println("⚠️ Sound file not found: /sound/drop_piece.wav");
+                System.err.println("Sound file not found: /sound/drop_piece.wav");
             }
 
             // Main drop transition
@@ -111,8 +111,18 @@ public class BoardRenderer {
             TranslateTransition settle = new TranslateTransition(Duration.millis(100), falling);
             settle.setToY(localPoint.getY());
 
-            // Chain them together
-            SequentialTransition sequence = new SequentialTransition(drop, bounceUp, settle);
+            // Second smaller bounce
+            TranslateTransition bounceUp2 = new TranslateTransition(Duration.millis(80), falling);
+            bounceUp2.setToY(localPoint.getY() - 5);
+
+            TranslateTransition settle2 = new TranslateTransition(Duration.millis(80), falling);
+            settle2.setToY(localPoint.getY());
+
+            // Chain all together
+            SequentialTransition sequence = new SequentialTransition(
+                    drop, bounceUp, settle, bounceUp2, settle2
+            );
+
             sequence.setOnFinished(e -> {
                 root.getChildren().remove(falling);
                 onFinish.run();
