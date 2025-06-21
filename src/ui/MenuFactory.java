@@ -3,16 +3,19 @@ package ui;
 import javafx.scene.control.*;
 import javafx.scene.control.Alert.AlertType;
 import javafx.stage.Stage;
+import logic.GameController;
 
 public class MenuFactory {
     private final Runnable onExit;
     private final Stage primaryStage;
     private final PlayerSettings playerSettings;
+    private final GameController controller;
 
-    public MenuFactory(Runnable onExit, Stage primaryStage, PlayerSettings playerSettings) {
+    public MenuFactory(Runnable onExit, Stage primaryStage, PlayerSettings playerSettings, GameController controller) {
         this.onExit = onExit;
         this.primaryStage = primaryStage;
         this.playerSettings = playerSettings;
+        this.controller = controller;
     }
 
     public MenuBar createMenuBar() {
@@ -31,8 +34,30 @@ public class MenuFactory {
             PlayerSettingsDialog dialog = new PlayerSettingsDialog(playerSettings);
             dialog.show();
         });
-
         settingsMenu.getItems().add(colorItem);
+
+        // Sounds submenu under Settings
+        Menu soundsSubMenu = new Menu("Sounds");
+
+        CheckMenuItem toggleMusic = new CheckMenuItem("Background Music");
+        toggleMusic.setSelected(true);
+        toggleMusic.setOnAction(e -> {
+            if (toggleMusic.isSelected()) {
+                controller.playBackgroundMusic();
+            } else {
+                controller.stopBackgroundMusic();
+            }
+        });
+
+        CheckMenuItem toggleDropSound = new CheckMenuItem("Piece Drop Sound");
+        toggleDropSound.setSelected(true);
+        toggleDropSound.setOnAction(e -> controller.setDropSoundEnabled(toggleDropSound.isSelected()));
+
+        soundsSubMenu.getItems().addAll(toggleMusic, toggleDropSound);
+
+        // Add sounds submenu to settings menu
+        settingsMenu.getItems().add(soundsSubMenu);
+
 
         // Help Menu
         Menu helpMenu = new Menu("Help");

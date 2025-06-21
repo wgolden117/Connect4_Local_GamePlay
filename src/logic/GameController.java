@@ -6,12 +6,16 @@ import javafx.scene.Scene;
 import javafx.scene.control.Alert;
 import javafx.scene.control.ButtonType;
 import javafx.scene.layout.StackPane;
+import javafx.scene.media.AudioClip;
+import javafx.scene.media.Media;
+import javafx.scene.media.MediaPlayer;
 import javafx.scene.paint.Color;
 import javafx.stage.Stage;
 import javafx.util.Duration;
 import ui.BoardLayout;
 import ui.PlayerSettings;
 
+import java.net.URL;
 import java.util.List;
 import java.util.Optional;
 
@@ -26,6 +30,8 @@ public class GameController {
     private AIPlayer aiPlayer;
     private final Stage stage;
     private BoardRenderer boardRenderer;
+    private MediaPlayer backgroundPlayer;
+    private boolean dropSoundEnabled = true;
 
 
     public GameController(Stage primaryStage) {
@@ -34,10 +40,17 @@ public class GameController {
         this.gameState = new GameStateManager();
         this.playerSettings = new PlayerSettings();
         this.boardLayout = new BoardLayout(gameLogic, playerSettings);
+
+        setupBackgroundMusic();  // Prepare the music
+        playBackgroundMusic();   // Start playing it immediately
     }
 
     public Stage getStage() {
         return stage;
+    }
+
+    public void setDropSoundEnabled(boolean enabled) {
+        this.dropSoundEnabled = enabled;
     }
 
     public void setBoardRenderer(BoardRenderer boardRenderer) {
@@ -46,6 +59,18 @@ public class GameController {
 
     public void setAIPlayer(AIPlayer aiPlayer) {
         this.aiPlayer = aiPlayer;
+    }
+
+    public void playDropSound() {
+        if (!dropSoundEnabled) return;
+
+        URL soundURL = getClass().getResource("/sound/drop_piece.wav");
+        if (soundURL != null) {
+            AudioClip clip = new AudioClip(soundURL.toString());
+            clip.play();
+        } else {
+            System.err.println("Sound file not found: /sound/drop_piece.wav");
+        }
     }
 
     public void loadBoard(String labelText) {
@@ -85,6 +110,8 @@ public class GameController {
                 : playerSettings.getPlayerTwoColor();
 
         boardRenderer.setButtonsDisabled(true);
+
+        playDropSound();
 
         boardRenderer.animateDrop(col, row, currentColor, () -> {
             if (!gameLogic.makeMove(col, currentPlayer)) {
@@ -131,6 +158,33 @@ public class GameController {
             }
         });
         delay.play();
+    }
+
+    public void setupBackgroundMusic() {
+        try {
+            URL musicURL = getClass().getResource("/sound/background_music.wav");
+            if (musicURL != null) {
+                Media media = new Media(musicURL.toURI().toString());
+                backgroundPlayer = new MediaPlayer(media);
+                backgroundPlayer.setCycleCount(MediaPlayer.INDEFINITE); // Loop forever
+            } else {
+                System.err.println("Background music file not found at /sound/background_music.wav");
+            }
+        } catch (Exception e) {
+            System.err.println("Failed to load background music: " + e.getMessage());
+        }
+    }
+
+    public void playBackgroundMusic() {
+        if (backgroundPlayer != null) {
+            backgroundPlayer.play();
+        }
+    }
+
+    public void stopBackgroundMusic() {
+        if (backgroundPlayer != null) {
+            backgroundPlayer.stop();
+        }
     }
 
     public void playAgain(String labelText) {

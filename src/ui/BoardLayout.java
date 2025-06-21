@@ -44,7 +44,8 @@ public class BoardLayout {
         );
 
         // Menu bar
-        MenuFactory menuFactory = new MenuFactory(controller::closeApplication, controller.getStage(), playerSettings);
+        MenuFactory menuFactory = new MenuFactory(controller::closeApplication, controller.getStage(), playerSettings, controller);
+
         MenuBar menuBar = menuFactory.createMenuBar();
 
         // Title label + grid in center VBox
