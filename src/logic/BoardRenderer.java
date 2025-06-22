@@ -26,8 +26,9 @@ public class BoardRenderer {
     private final Circle[][] circles = new Circle[rows][cols];
     private Button[] buttons;
     private final PlayerSettings playerSettings;
-    private final List<TranslateTransition> rollingTransitions = new ArrayList<>();
-    private final List<Circle> rollingPieces = new ArrayList<>();
+    private final List<Animation> rollingTransitions = new ArrayList<>();
+    List<RollingPiece> rollingPieces = new ArrayList<>();
+
     private final Pane rollingContainer;
 
     public BoardRenderer(StackPane root, PlayerSettings playerSettings, Pane rollingContainer) {
@@ -237,12 +238,11 @@ public class BoardRenderer {
         rollingPieces.clear();
 
         int totalPieces = 24;
-        double radius = 20;
+        double radius = 30;
 
         Platform.runLater(() -> {
             double paneWidth = rollingContainer.getWidth();
-            double spacing = 30;
-            double marginX = (paneWidth - spacing * 12) / 2;
+            double paneHeight = rollingContainer.getHeight();
 
             for (int i = 0; i < totalPieces; i++) {
                 boolean isPlayerOne = i < 12;
@@ -250,44 +250,80 @@ public class BoardRenderer {
 
                 Circle piece = new Circle(radius, color);
                 piece.setStroke(Color.BLACK);
-                piece.setStrokeWidth(2);
+                piece.setStrokeWidth(4);
 
-                double finalX = marginX + (i % 12) * spacing;
-                double finalY = isPlayerOne ? 40 : 75;
+                double x = Math.random() * (paneWidth - 2 * radius);
+                double y = -50 - Math.random() * 150;
 
-                // Start above the pane (invisible)
-                piece.setLayoutX(finalX);
-                piece.setLayoutY(-50);
+                piece.setLayoutX(x);
+                piece.setLayoutY(y);
+
+                piece.setOnMouseClicked(ev -> bounceRollingPiece(piece));
 
                 rollingContainer.getChildren().add(piece);
-                rollingPieces.add(piece);
-
-                // Animate falling into place
-                TranslateTransition drop = new TranslateTransition(Duration.seconds(1 + Math.random()), piece);
-                drop.setFromY(-100);
-                drop.setToY(finalY);
-                drop.setInterpolator(Interpolator.EASE_OUT);
-
-                drop.setOnFinished(e -> {
-                    // Lock into place after drop
-                    piece.setLayoutY(finalY);
-
-                    // Enable click bounce
-                    piece.setOnMouseClicked(ev -> bounceRollingPiece(piece));
-
-                    // Start spin
-                    RotateTransition spin = new RotateTransition(Duration.seconds(3 + Math.random() * 2), piece);
-                    spin.setByAngle(isPlayerOne ? 360 : -360);
-                    spin.setCycleCount(Animation.INDEFINITE);
-                    spin.setInterpolator(Interpolator.LINEAR);
-                    spin.play();
-                });
-
-                drop.play();
+                // Initial velocity (fall + a bit of x drift)
+                RollingPiece rp = new RollingPiece(piece, (Math.random() - 0.5) * 2, 0);
+                rollingPieces.add(rp);
             }
+
+            startPhysicsLoop(radius, paneWidth, paneHeight);
         });
     }
 
+    private void startPhysicsLoop(double radius, double paneWidth, double paneHeight) {
+        final double gravity = 0.3;       // Slower descent = longer bounces
+        final double friction = 0.995;    // Slower sideways decay = longer motion
+        final double bounceLoss = 0.85;   // Higher = more energy retained after bounce
+        AnimationTimer timer = new AnimationTimer() {
+            @Override
+            public void handle(long now) {
+                for (int i = 0; i < rollingPieces.size(); i++) {
+                    RollingPiece rp = rollingPieces.get(i);
+                    Circle c = rp.circle;
+
+                    rp.vy += gravity;
+
+                    // Update position
+                    double x = c.getLayoutX() + rp.vx;
+                    double y = c.getLayoutY() + rp.vy;
+
+                    // Wall collision
+                    if (x <= radius || x >= paneWidth - radius) {
+                        rp.vx *= -1;
+                        x = Math.max(radius, Math.min(x, paneWidth - radius));
+                    }
+                    if (y >= paneHeight - radius) {
+                        y = paneHeight - radius;
+                        rp.vy *= -bounceLoss;
+                        rp.vx *= friction;
+                    }
+
+                    // Collision with other pieces
+                    for (int j = i + 1; j < rollingPieces.size(); j++) {
+                        RollingPiece other = rollingPieces.get(j);
+                        Circle oc = other.circle;
+
+                        double dx = x - oc.getLayoutX();
+                        double dy = y - oc.getLayoutY();
+                        double dist = Math.hypot(dx, dy);
+
+                        if (dist < radius * 2) {
+                            // Simple 1D elastic collision
+                            double tempVx = rp.vx;
+                            double tempVy = rp.vy;
+                            rp.vx = other.vx;
+                            rp.vy = other.vy;
+                            other.vx = tempVx;
+                            other.vy = tempVy;
+                        }
+                    }
+                    c.setLayoutX(x);
+                    c.setLayoutY(y);
+                }
+            }
+        };
+        timer.start();
+    }
 
     public void refreshRollingPieceColors() {
         Platform.runLater(() -> {
@@ -303,7 +339,7 @@ public class BoardRenderer {
         double startX = piece.getLayoutX();
         double startY = piece.getLayoutY();
 
-        double bounceHeight = 80;
+        double bounceHeight = 100;
         double bounceDistance = 60;
         double baseDuration = 150;
 
@@ -316,13 +352,12 @@ public class BoardRenderer {
             double midX = startX + offsetX;
             double midY = startY - bounceHeight;
 
-            double endX = midX;
             double endY = startY;
 
             KeyValue kvUpX = new KeyValue(piece.layoutXProperty(), midX, Interpolator.EASE_OUT);
             KeyValue kvUpY = new KeyValue(piece.layoutYProperty(), midY, Interpolator.EASE_OUT);
 
-            KeyValue kvDownX = new KeyValue(piece.layoutXProperty(), endX, Interpolator.EASE_IN);
+            KeyValue kvDownX = new KeyValue(piece.layoutXProperty(), midX, Interpolator.EASE_IN);
             KeyValue kvDownY = new KeyValue(piece.layoutYProperty(), endY, Interpolator.EASE_IN);
 
             KeyFrame kfUp = new KeyFrame(Duration.millis(duration), kvUpX, kvUpY);
@@ -332,7 +367,7 @@ public class BoardRenderer {
             bounceSequence.add(bounce);
 
             // Update starting point for next bounce
-            startX = endX;
+            startX = midX;
             startY = endY;
 
             bounceHeight *= 0.6;
