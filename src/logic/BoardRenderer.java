@@ -27,6 +27,7 @@ public class BoardRenderer {
     private Button[] buttons;
     private final PlayerSettings playerSettings;
     private final List<TranslateTransition> rollingTransitions = new ArrayList<>();
+    private final List<Circle> rollingPieces = new ArrayList<>();
     private final HBox rollingContainer;
 
     public BoardRenderer(StackPane root, PlayerSettings playerSettings, HBox rollingContainer) {
@@ -232,7 +233,8 @@ public class BoardRenderer {
     public void startRollingPieceAnimation() {
         Platform.runLater(() -> {
             rollingTransitions.clear();
-            rollingContainer.getChildren().clear(); // clear old pieces
+            rollingContainer.getChildren().clear();
+            rollingPieces.clear(); // Clear old references
 
             int totalPieces = 24;
             double radius = 10;
@@ -246,28 +248,35 @@ public class BoardRenderer {
                 piece.setStrokeWidth(2);
 
                 rollingContainer.getChildren().add(piece);
+                rollingPieces.add(piece); // Save reference
 
-                // Horizontal oscillating movement
                 TranslateTransition move = new TranslateTransition(Duration.seconds(2 + Math.random() * 2), piece);
                 move.setFromX(-10);
                 move.setToX(10);
                 move.setCycleCount(Animation.INDEFINITE);
                 move.setAutoReverse(true);
 
-                // Bounce up and down
                 TranslateTransition bounce = new TranslateTransition(Duration.seconds(0.4), piece);
                 bounce.setFromY(0);
                 bounce.setToY(-10);
                 bounce.setCycleCount(Animation.INDEFINITE);
                 bounce.setAutoReverse(true);
 
-                // Spin for fun
                 RotateTransition spin = new RotateTransition(Duration.seconds(4 + Math.random() * 2), piece);
                 spin.setByAngle(isPlayerOne ? 360 : -360);
                 spin.setCycleCount(Animation.INDEFINITE);
                 spin.setAutoReverse(true);
 
                 new ParallelTransition(move, bounce, spin).play();
+            }
+        });
+    }
+    public void refreshRollingPieceColors() {
+        Platform.runLater(() -> {
+            for (int i = 0; i < rollingPieces.size(); i++) {
+                boolean isPlayerOne = i < 12;
+                Color newColor = isPlayerOne ? playerSettings.getPlayerOneColor() : playerSettings.getPlayerTwoColor();
+                rollingPieces.get(i).setFill(newColor);
             }
         });
     }

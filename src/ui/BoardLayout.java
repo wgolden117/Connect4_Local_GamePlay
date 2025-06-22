@@ -54,16 +54,23 @@ public class BoardLayout {
         grid.setMaxSize(Region.USE_COMPUTED_SIZE, Region.USE_COMPUTED_SIZE);
 
         // Reactive color updates
-        playerSettings.playerOneColorProperty().addListener((obs, oldColor, newColor) ->
-                boardRenderer.refreshColors(gameLogic.getBoard(),
-                        playerSettings.getPlayerOneColor(),
-                        playerSettings.getPlayerTwoColor())
-        );
-        playerSettings.playerTwoColorProperty().addListener((obs, oldColor, newColor) ->
-                boardRenderer.refreshColors(gameLogic.getBoard(),
-                        playerSettings.getPlayerOneColor(),
-                        playerSettings.getPlayerTwoColor())
-        );
+        playerSettings.playerOneColorProperty().addListener((obs, oldColor, newColor) -> {
+            boardRenderer.refreshColors(
+                    gameLogic.getBoard(),
+                    playerSettings.getPlayerOneColor(),
+                    playerSettings.getPlayerTwoColor()
+            );
+            boardRenderer.refreshRollingPieceColors();
+        });
+
+        playerSettings.playerTwoColorProperty().addListener((obs, oldColor, newColor) -> {
+            boardRenderer.refreshColors(
+                    gameLogic.getBoard(),
+                    playerSettings.getPlayerOneColor(),
+                    playerSettings.getPlayerTwoColor()
+            );
+            boardRenderer.refreshRollingPieceColors();
+        });
 
         // Menu bar
         MenuFactory menuFactory = new MenuFactory(controller::closeApplication, controller.getStage(), playerSettings, controller);
