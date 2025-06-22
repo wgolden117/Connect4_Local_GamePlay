@@ -38,13 +38,10 @@ public class BoardLayout {
         root.setPrefSize(850, 850);
 
         // --- New rolling piece container at bottom ---
-        HBox rollingPieceContainer = new HBox();
-        rollingPieceContainer.setSpacing(10);
-        rollingPieceContainer.setAlignment(Pos.CENTER);
+        Pane rollingPieceContainer = new Pane();
         rollingPieceContainer.setPrefHeight(200);
-        rollingPieceContainer.setPadding(new Insets(10, 0, 10, 0)); // Add some breathing room
         rollingPieceContainer.setStyle("-fx-background-color: transparent;");
-        rollingPieceContainer.setSpacing(15);
+
         BoardRenderer boardRenderer = new BoardRenderer(root, playerSettings, rollingPieceContainer);
 
         GridPane grid = boardRenderer.createGrid();

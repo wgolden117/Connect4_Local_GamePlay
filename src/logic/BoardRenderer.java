@@ -28,9 +28,9 @@ public class BoardRenderer {
     private final PlayerSettings playerSettings;
     private final List<TranslateTransition> rollingTransitions = new ArrayList<>();
     private final List<Circle> rollingPieces = new ArrayList<>();
-    private final HBox rollingContainer;
+    private final Pane rollingContainer;
 
-    public BoardRenderer(StackPane root, PlayerSettings playerSettings, HBox rollingContainer) {
+    public BoardRenderer(StackPane root, PlayerSettings playerSettings, Pane rollingContainer) {
         this.root = root;
         this.playerSettings = playerSettings;
         this.rollingContainer = rollingContainer;
@@ -192,6 +192,7 @@ public class BoardRenderer {
             }
         }
     }
+
     public void highlightWinningLine(List<int[]> winningCoords, Color playerColor) {
         Color flashColor = getContrastingColor(playerColor);
         List<FillTransition> transitions = new ArrayList<>();
@@ -231,13 +232,17 @@ public class BoardRenderer {
     }
 
     public void startRollingPieceAnimation() {
-        Platform.runLater(() -> {
-            rollingTransitions.clear();
-            rollingContainer.getChildren().clear();
-            rollingPieces.clear(); // Clear old references
+        rollingTransitions.clear();
+        rollingContainer.getChildren().clear();
+        rollingPieces.clear();
 
-            int totalPieces = 24;
-            double radius = 10;
+        int totalPieces = 24;
+        double radius = 20;
+
+        Platform.runLater(() -> {
+            double paneWidth = rollingContainer.getWidth();
+            double spacing = 30;
+            double marginX = (paneWidth - spacing * 12) / 2;
 
             for (int i = 0; i < totalPieces; i++) {
                 boolean isPlayerOne = i < 12;
@@ -247,30 +252,43 @@ public class BoardRenderer {
                 piece.setStroke(Color.BLACK);
                 piece.setStrokeWidth(2);
 
+                double finalX = marginX + (i % 12) * spacing;
+                double finalY = isPlayerOne ? 40 : 75;
+
+                // Start above the pane (invisible)
+                piece.setLayoutX(finalX);
+                piece.setLayoutY(-50);
+
                 rollingContainer.getChildren().add(piece);
-                rollingPieces.add(piece); // Save reference
+                rollingPieces.add(piece);
 
-                TranslateTransition move = new TranslateTransition(Duration.seconds(2 + Math.random() * 2), piece);
-                move.setFromX(-10);
-                move.setToX(10);
-                move.setCycleCount(Animation.INDEFINITE);
-                move.setAutoReverse(true);
+                // Animate falling into place
+                TranslateTransition drop = new TranslateTransition(Duration.seconds(1 + Math.random()), piece);
+                drop.setFromY(-100);
+                drop.setToY(finalY);
+                drop.setInterpolator(Interpolator.EASE_OUT);
 
-                TranslateTransition bounce = new TranslateTransition(Duration.seconds(0.4), piece);
-                bounce.setFromY(0);
-                bounce.setToY(-10);
-                bounce.setCycleCount(Animation.INDEFINITE);
-                bounce.setAutoReverse(true);
+                drop.setOnFinished(e -> {
+                    // Lock into place after drop
+                    piece.setLayoutY(finalY);
 
-                RotateTransition spin = new RotateTransition(Duration.seconds(4 + Math.random() * 2), piece);
-                spin.setByAngle(isPlayerOne ? 360 : -360);
-                spin.setCycleCount(Animation.INDEFINITE);
-                spin.setAutoReverse(true);
+                    // Enable click bounce
+                    piece.setOnMouseClicked(ev -> bounceRollingPiece(piece));
 
-                new ParallelTransition(move, bounce, spin).play();
+                    // Start spin
+                    RotateTransition spin = new RotateTransition(Duration.seconds(3 + Math.random() * 2), piece);
+                    spin.setByAngle(isPlayerOne ? 360 : -360);
+                    spin.setCycleCount(Animation.INDEFINITE);
+                    spin.setInterpolator(Interpolator.LINEAR);
+                    spin.play();
+                });
+
+                drop.play();
             }
         });
     }
+
+
     public void refreshRollingPieceColors() {
         Platform.runLater(() -> {
             for (int i = 0; i < rollingPieces.size(); i++) {
@@ -279,5 +297,50 @@ public class BoardRenderer {
                 rollingPieces.get(i).setFill(newColor);
             }
         });
+    }
+
+    private void bounceRollingPiece(Circle piece) {
+        double startX = piece.getLayoutX();
+        double startY = piece.getLayoutY();
+
+        double bounceHeight = 80;
+        double bounceDistance = 60;
+        double baseDuration = 150;
+
+        List<Animation> bounceSequence = new ArrayList<>();
+
+        for (int i = 0; i < 5; i++) {
+            double duration = baseDuration + i * 30;
+            double offsetX = (Math.random() - 0.5) * bounceDistance;
+
+            double midX = startX + offsetX;
+            double midY = startY - bounceHeight;
+
+            double endX = midX;
+            double endY = startY;
+
+            KeyValue kvUpX = new KeyValue(piece.layoutXProperty(), midX, Interpolator.EASE_OUT);
+            KeyValue kvUpY = new KeyValue(piece.layoutYProperty(), midY, Interpolator.EASE_OUT);
+
+            KeyValue kvDownX = new KeyValue(piece.layoutXProperty(), endX, Interpolator.EASE_IN);
+            KeyValue kvDownY = new KeyValue(piece.layoutYProperty(), endY, Interpolator.EASE_IN);
+
+            KeyFrame kfUp = new KeyFrame(Duration.millis(duration), kvUpX, kvUpY);
+            KeyFrame kfDown = new KeyFrame(Duration.millis(duration * 2), kvDownX, kvDownY);
+
+            Timeline bounce = new Timeline(kfUp, kfDown);
+            bounceSequence.add(bounce);
+
+            // Update starting point for next bounce
+            startX = endX;
+            startY = endY;
+
+            bounceHeight *= 0.6;
+            bounceDistance *= 0.6;
+        }
+
+        SequentialTransition fullBounce = new SequentialTransition();
+        fullBounce.getChildren().addAll(bounceSequence);
+        fullBounce.play();
     }
 }
