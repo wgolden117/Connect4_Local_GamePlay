@@ -4,6 +4,7 @@ import javafx.animation.*;
 import javafx.application.Platform;
 import javafx.beans.binding.Bindings;
 import javafx.geometry.Bounds;
+import javafx.geometry.Insets;
 import javafx.geometry.Point2D;
 import javafx.geometry.Pos;
 import javafx.scene.CacheHint;
@@ -36,6 +37,7 @@ public class BoardRenderer {
 
     public GridPane createGrid() {
         GridPane grid = new GridPane();
+        grid.setPadding(new Insets(0, 20, 0, 20)); // top, right, bottom, left
         grid.setAlignment(Pos.CENTER);
         grid.setHgap(2);
         grid.setVgap(2);
@@ -198,7 +200,7 @@ public class BoardRenderer {
             int col = pos[1];
             Circle circle = circles[row][col];
 
-            FillTransition flash = new FillTransition(Duration.millis(600), circle);
+            FillTransition flash = new FillTransition(Duration.millis(300), circle);
             flash.setFromValue(playerColor);
             flash.setToValue(flashColor);
             flash.setCycleCount(Animation.INDEFINITE);
@@ -208,7 +210,7 @@ public class BoardRenderer {
             transitions.add(flash);
         }
         // Stop flashing after 5 seconds
-        PauseTransition stopFlashing = new PauseTransition(Duration.seconds(3));
+        PauseTransition stopFlashing = new PauseTransition(Duration.seconds(6));
         stopFlashing.setOnFinished(e -> transitions.forEach(Animation::stop));
         stopFlashing.play();
     }
@@ -232,11 +234,11 @@ public class BoardRenderer {
             rollingTransitions.clear();
             rollingContainer.getChildren().clear(); // clear old pieces
 
-            int totalPieces = 12;
-            double radius = 25;
+            int totalPieces = 24;
+            double radius = 10;
 
             for (int i = 0; i < totalPieces; i++) {
-                boolean isPlayerOne = i < 6;
+                boolean isPlayerOne = i < 12;
                 Color color = isPlayerOne ? playerSettings.getPlayerOneColor() : playerSettings.getPlayerTwoColor();
 
                 Circle piece = new Circle(radius, color);

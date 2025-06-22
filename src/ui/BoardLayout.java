@@ -35,7 +35,7 @@ public class BoardLayout {
 
     public Optional<StackPane> createBoardLayout(String labelText, GameController controller) {
         StackPane root = new StackPane(); // For animation overlay
-        root.setPrefSize(800, 800);
+        root.setPrefSize(850, 850);
 
         // --- New rolling piece container at bottom ---
         HBox rollingPieceContainer = new HBox();
@@ -45,7 +45,6 @@ public class BoardLayout {
         rollingPieceContainer.setPadding(new Insets(10, 0, 10, 0)); // Add some breathing room
         rollingPieceContainer.setStyle("-fx-background-color: transparent;");
         rollingPieceContainer.setSpacing(15);
-        // Updated constructor to pass rolling container
         BoardRenderer boardRenderer = new BoardRenderer(root, playerSettings, rollingPieceContainer);
 
         GridPane grid = boardRenderer.createGrid();
@@ -147,7 +146,7 @@ public class BoardLayout {
             Label numberLabel = new Label(String.valueOf(col + 1));
             numberLabel.setFont(Font.font("Arial", FontWeight.BOLD, 30));
             numberLabel.setStyle("-fx-font-weight: bold;");
-            grid.add(numberLabel, col, 7);
+            grid.add(numberLabel, col, 7);// Row 7 for numbers
             GridPane.setHalignment(numberLabel, HPos.CENTER);
         }
     }

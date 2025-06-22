@@ -36,8 +36,8 @@ public class GameController {
 
     public GameController(Stage primaryStage) {
         this.stage = primaryStage;
-        stage.setMinWidth(800);
-        stage.setMinHeight(800);
+        stage.setMinWidth(850);
+        stage.setMinHeight(850);
         this.gameLogic = new GameLogic();
         this.gameState = new GameStateManager();
         this.playerSettings = new PlayerSettings();
