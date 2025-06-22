@@ -383,7 +383,7 @@ public class BoardRenderer {
             Circle circle = rp.circle;
             double startX = circle.getLayoutX();
             double startY = circle.getLayoutY();
-            rollingContainer.getChildren().remove(circle); // remove piece from view
+            rollingContainer.getChildren().remove(circle);
 
             for (int i = 0; i < 10; i++) {
                 Rectangle confetti = new Rectangle(4, 8);
@@ -393,23 +393,35 @@ public class BoardRenderer {
 
                 root.getChildren().add(confetti);
 
-                // Random arc path
+                // Arc explosion then downward fall
                 Path path = new Path();
                 path.getElements().add(new MoveTo(startX, startY));
+
                 double angle = Math.toRadians(Math.random() * 360);
                 double radius = 80 + Math.random() * 40;
-                double targetX = startX + Math.cos(angle) * radius;
-                double targetY = startY + Math.sin(angle) * radius + 100;
+                double midX = startX + Math.cos(angle) * radius;
+                double midY = startY + Math.sin(angle) * radius;
 
+                // Create upward burst arc
                 path.getElements().add(new QuadCurveTo(
-                        (startX + targetX) / 2 + (Math.random() - 0.5) * 60,
+                        (startX + midX) / 2 + (Math.random() - 0.5) * 40,
                         startY - 80,
-                        targetX,
-                        targetY
+                        midX,
+                        midY
                 ));
 
-                PathTransition fall = new PathTransition(Duration.seconds(1.8 + Math.random()), path, confetti);
-                fall.setInterpolator(Interpolator.EASE_OUT);
+                // Add falling curve to bottom
+                double fallX = midX + (Math.random() - 0.5) * 60;
+                double fallY = root.getHeight() + 100; // ensure it goes well below
+                path.getElements().add(new QuadCurveTo(
+                        (midX + fallX) / 2,
+                        midY + 100,
+                        fallX,
+                        fallY
+                ));
+
+                PathTransition fall = new PathTransition(Duration.seconds(3 + Math.random()), path, confetti);
+                fall.setInterpolator(Interpolator.EASE_IN);
 
                 RotateTransition spin = new RotateTransition(Duration.seconds(2), confetti);
                 spin.setByAngle(360 * (Math.random() < 0.5 ? 1 : -1));
