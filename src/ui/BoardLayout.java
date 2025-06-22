@@ -94,7 +94,7 @@ public class BoardLayout {
         // Setup buttons
         Button[] buttons = new Button[7];
         if (labelText.equals("Player vs. Player")) {
-            setupPlayerVsPlayer(grid, controller, labelText, buttons);
+            setupPlayerVsPlayer(grid, controller, labelText, buttons, root);
         } else {
             ChoiceDialog<String> dialog = new ChoiceDialog<>("Easy", "Easy", "Medium", "Hard");
             dialog.setTitle("AI Difficulty");
@@ -108,23 +108,23 @@ public class BoardLayout {
             AIPlayer aiPlayer = new AIPlayer(gameLogic, aiDifficulty, 2);
             controller.setAIPlayer(aiPlayer);
 
-            setupPlayerVsAI(grid, controller, labelText, buttons);
+            setupPlayerVsAI(grid, controller, labelText, buttons, root);
         }
 
         boardRenderer.setButtons(buttons);
         controller.setBoardRenderer(boardRenderer);
         boardRenderer.startRollingPieceAnimation(); // Rolling starts
-        controller.setConfettiHandlers(() -> startConfettiAnimation(root), this::stopConfettiAnimation);
+        controller.setConfettiHandlers(() -> startConfettiAnimation(root));
 
         return Optional.of(root);
     }
 
 
-    private void setupPlayerVsPlayer(GridPane grid, GameController controller, String labelText, Button[] buttons) {
+    private void setupPlayerVsPlayer(GridPane grid, GameController controller, String labelText, Button[] buttons, StackPane root) {
         for (int col = 0; col < 7; col++) {
             Button button = new Button("Drop");
             int finalCol = col;
-            button.setOnAction(e -> controller.dropPiece(finalCol, labelText));
+            button.setOnAction(e -> controller.dropPiece(finalCol, labelText, root));
             buttons[col] = button;
             grid.add(button, col, 6); // Buttons row
             GridPane.setHalignment(button, HPos.CENTER);
@@ -138,11 +138,11 @@ public class BoardLayout {
         }
     }
 
-    private void setupPlayerVsAI(GridPane grid, GameController controller, String labelText, Button[] buttons) {
+    private void setupPlayerVsAI(GridPane grid, GameController controller, String labelText, Button[] buttons, StackPane root) {
         for (int col = 0; col < 7; col++) {
             Button button = new Button("Drop");
             int finalCol = col;
-            button.setOnAction(e -> controller.dropPiece(finalCol, labelText));
+            button.setOnAction(e -> controller.dropPiece(finalCol, labelText, root));
             buttons[col] = button;
             grid.add(button, col, 6);
             GridPane.setHalignment(button, HPos.CENTER);
@@ -197,8 +197,4 @@ public class BoardLayout {
     }
 
 
-    public void stopConfettiAnimation() {
-        activeConfettiAnimations.forEach(Animation::stop);
-        activeConfettiAnimations.clear();
-    }
 }

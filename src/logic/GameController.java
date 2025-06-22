@@ -33,6 +33,7 @@ public class GameController {
     private MediaPlayer backgroundPlayer;
     private boolean dropSoundEnabled = true;
     private Runnable triggerConfetti;
+    private StackPane rootPane;
 
     public GameController(Stage primaryStage) {
         this.stage = primaryStage;
@@ -63,7 +64,7 @@ public class GameController {
         this.aiPlayer = aiPlayer;
     }
 
-    public void setConfettiHandlers(Runnable triggerConfetti, Runnable stopConfetti) {
+    public void setConfettiHandlers(Runnable triggerConfetti) {
         this.triggerConfetti = triggerConfetti;
     }
 
@@ -90,6 +91,7 @@ public class GameController {
             return;
         }
         StackPane layout = optionalLayout.get();
+        this.rootPane = layout;
         Scene scene = new Scene(layout);
         stage.setScene(scene);
         stage.setTitle("Connect4");
@@ -105,7 +107,7 @@ public class GameController {
 
     }
 
-    public void dropPiece(int col, String labelText) {
+    public void dropPiece(int col, String labelText, StackPane rootPane) {
         if (gameState.isGameOver() || gameLogic.isColumnFull(col)) {
             displayMessage("Column is full. Please choose another column!", false, labelText);
             return;
@@ -142,6 +144,8 @@ public class GameController {
                 // Highlight the winning positions
                 List<int[]> winPositions = gameLogic.getWinningPositions();
                 boardRenderer.highlightWinningLine(winPositions, currentColor);
+                // Explode rolling pieces
+                boardRenderer.explodeRollingPiecesIntoConfetti(rootPane);
                 // Start confetti
                 if (triggerConfetti != null) triggerConfetti.run();
             } else if (gameState.getMoveCount() == 42 || gameLogic.isBoardFull()) {
@@ -166,7 +170,7 @@ public class GameController {
             int aiMove = aiPlayer.getMove();
 
             if (aiMove >= 0 && aiMove < 7) {
-                dropPiece(aiMove, labelText); // Let AI drop a piece
+                dropPiece(aiMove, labelText, rootPane); // Let AI drop a piece
             } else {
                 displayMessage("AI attempted invalid move.", true, labelText);
             }

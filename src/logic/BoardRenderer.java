@@ -11,8 +11,7 @@ import javafx.scene.CacheHint;
 import javafx.scene.control.Button;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
-import javafx.scene.shape.Circle;
-import javafx.scene.shape.Rectangle;
+import javafx.scene.shape.*;
 import javafx.util.Duration;
 import ui.PlayerSettings;
 
@@ -377,5 +376,50 @@ public class BoardRenderer {
         SequentialTransition fullBounce = new SequentialTransition();
         fullBounce.getChildren().addAll(bounceSequence);
         fullBounce.play();
+    }
+
+    public void explodeRollingPiecesIntoConfetti(StackPane root) {
+        for (RollingPiece rp : rollingPieces) {
+            Circle circle = rp.circle;
+            double startX = circle.getLayoutX();
+            double startY = circle.getLayoutY();
+            rollingContainer.getChildren().remove(circle); // remove piece from view
+
+            for (int i = 0; i < 10; i++) {
+                Rectangle confetti = new Rectangle(4, 8);
+                confetti.setFill(circle.getFill());
+                confetti.setTranslateX(startX);
+                confetti.setTranslateY(startY);
+
+                root.getChildren().add(confetti);
+
+                // Random arc path
+                Path path = new Path();
+                path.getElements().add(new MoveTo(startX, startY));
+                double angle = Math.toRadians(Math.random() * 360);
+                double radius = 80 + Math.random() * 40;
+                double targetX = startX + Math.cos(angle) * radius;
+                double targetY = startY + Math.sin(angle) * radius + 100;
+
+                path.getElements().add(new QuadCurveTo(
+                        (startX + targetX) / 2 + (Math.random() - 0.5) * 60,
+                        startY - 80,
+                        targetX,
+                        targetY
+                ));
+
+                PathTransition fall = new PathTransition(Duration.seconds(1.8 + Math.random()), path, confetti);
+                fall.setInterpolator(Interpolator.EASE_OUT);
+
+                RotateTransition spin = new RotateTransition(Duration.seconds(2), confetti);
+                spin.setByAngle(360 * (Math.random() < 0.5 ? 1 : -1));
+                spin.setCycleCount(Animation.INDEFINITE);
+
+                ParallelTransition explosion = new ParallelTransition(confetti, fall, spin);
+                explosion.setOnFinished(e -> root.getChildren().remove(confetti));
+                explosion.play();
+            }
+        }
+        rollingPieces.clear();
     }
 }
