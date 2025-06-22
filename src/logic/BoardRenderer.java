@@ -60,7 +60,7 @@ public class BoardRenderer {
                 Circle piece = new Circle();
                 piece.setFill(Color.WHITE);
                 piece.setStroke(Color.BLACK);
-                piece.setStrokeWidth(3);
+                piece.setStrokeWidth(5);
                 piece.radiusProperty().bind(
                         Bindings.createDoubleBinding(() ->
                                         Math.min(cell.getWidth(), cell.getHeight()) * 0.4,

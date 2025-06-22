@@ -35,7 +35,9 @@ public class GameController {
     private Runnable triggerConfetti;
 
     public GameController(Stage primaryStage) {
-        this.stage = primaryStage; // <-- THIS fixes the problem
+        this.stage = primaryStage;
+        stage.setMinWidth(800);
+        stage.setMinHeight(800);
         this.gameLogic = new GameLogic();
         this.gameState = new GameStateManager();
         this.playerSettings = new PlayerSettings();
