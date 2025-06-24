@@ -1,8 +1,0 @@
-<component name="ArtifactManager">
-  <artifact type="jar" name="Connect4_Local_GamePlay:jar">
-    <output-path>$PROJECT_DIR$/out/artifacts/Connect4_Local_GamePlay_jar</output-path>
-    <root id="archive" name="Connect4_Local_GamePlay.jar">
-      <element id="module-output" name="Connect4_Local_GamePlay" />
-    </root>
-  </artifact>
-</component>

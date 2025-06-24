@@ -1,5 +1,8 @@
 package logic;
 
+import animations.ConfettiAnimator;
+import animations.GameAnimator;
+import animations.MovingPieceAnimator;
 import javafx.animation.PauseTransition;
 import javafx.application.Platform;
 import javafx.scene.Scene;
@@ -26,14 +29,16 @@ public class GameController {
     private final GameLogic gameLogic;
     private final GameStateManager gameState;
     private final PlayerSettings playerSettings;
-    private final BoardLayout boardLayout;
     private AIPlayer aiPlayer;
     private final Stage stage;
     private BoardRenderer boardRenderer;
     private MediaPlayer backgroundPlayer;
     private boolean dropSoundEnabled = true;
-    private Runnable triggerConfetti;
     private StackPane rootPane;
+    private GameAnimator gameAnimator;
+    private ConfettiAnimator confettiAnimator;
+    private MovingPieceAnimator movingPieceAnimator;
+
 
     public GameController(Stage primaryStage) {
         this.stage = primaryStage;
@@ -42,7 +47,7 @@ public class GameController {
         this.gameLogic = new GameLogic();
         this.gameState = new GameStateManager();
         this.playerSettings = new PlayerSettings();
-        this.boardLayout = new BoardLayout(gameLogic, playerSettings);
+        // Will be instantiated fresh in loadBoard
 
         setupBackgroundMusic();  // Prepare the music
         playBackgroundMusic();   // Start playing it immediately
@@ -50,6 +55,10 @@ public class GameController {
 
     public Stage getStage() {
         return stage;
+    }
+
+    public MovingPieceAnimator getMovingPieceAnimator() {
+        return movingPieceAnimator;
     }
 
     public void setDropSoundEnabled(boolean enabled) {
@@ -60,12 +69,23 @@ public class GameController {
         this.boardRenderer = boardRenderer;
     }
 
+    public void setGameAnimator(GameAnimator animator) {
+        this.gameAnimator = animator;
+    }
+
     public void setAIPlayer(AIPlayer aiPlayer) {
         this.aiPlayer = aiPlayer;
     }
 
     public void setConfettiHandlers(Runnable triggerConfetti) {
-        this.triggerConfetti = triggerConfetti;
+    }
+
+    public void setConfettiAnimator(ConfettiAnimator animator) {
+        this.confettiAnimator = animator;
+    }
+
+    public void setMovingPieceAnimator(MovingPieceAnimator animator) {
+        this.movingPieceAnimator = animator;
     }
 
     public void playDropSound() {
@@ -81,17 +101,25 @@ public class GameController {
     }
 
     public void loadBoard(String labelText) {
+        if (confettiAnimator != null) {
+            confettiAnimator.stopConfettiAnimation();
+        }
+
+        // Create a brand new BoardLayout each time
+        BoardLayout boardLayout = new BoardLayout(gameLogic, playerSettings);
         Optional<StackPane> optionalLayout = boardLayout.createBoardLayout(labelText, this);
 
         if (optionalLayout.isEmpty()) {
-            // User clicked "Cancel" on AI difficulty dialog after choosing to play again
             if (labelText.equals("Player vs. Computer")) {
                 closeApplication();
             }
             return;
         }
+
         StackPane layout = optionalLayout.get();
         this.rootPane = layout;
+
+        // New scene with new root
         Scene scene = new Scene(layout);
         stage.setScene(scene);
         stage.setTitle("Connect4");
@@ -104,8 +132,8 @@ public class GameController {
             stage.sizeToScene();
             stage.getScene().getRoot().requestLayout();
         });
-
     }
+
 
     public void dropPiece(int col, String labelText, StackPane rootPane) {
         if (gameState.isGameOver() || gameLogic.isColumnFull(col)) {
@@ -128,7 +156,7 @@ public class GameController {
 
         playDropSound();
 
-        boardRenderer.animateDrop(col, row, currentColor, () -> {
+        gameAnimator.animateDrop(col, row, currentColor, () -> {
             if (!gameLogic.makeMove(col, currentPlayer)) {
                 displayMessage("Move could not be completed.", false, labelText);
                 boardRenderer.setButtonsDisabled(false);
@@ -145,9 +173,9 @@ public class GameController {
                 List<int[]> winPositions = gameLogic.getWinningPositions();
                 boardRenderer.highlightWinningLine(winPositions, currentColor);
                 // Explode rolling pieces
-                boardRenderer.explodeRollingPiecesIntoConfetti(rootPane);
+                confettiAnimator.explodeRollingPiecesIntoConfetti();
                 // Start confetti
-                if (triggerConfetti != null) triggerConfetti.run();
+                confettiAnimator.startConfettiAnimation();
             } else if (gameState.getMoveCount() == 42 || gameLogic.isBoardFull()) {
                 gameState.setGameOver(true);
                 displayMessage("It's a Draw!", true, labelText);
@@ -207,7 +235,7 @@ public class GameController {
 
     public void playAgain(String labelText) {
         gameState.reset();
-        gameLogic.resetBoard(); // <- This is the missing piece!
+        gameLogic.resetBoard();
         loadBoard(labelText);
     }
 

@@ -1,0 +1,177 @@
+package animations;
+
+import javafx.animation.*;
+import javafx.application.Platform;
+import javafx.scene.layout.Pane;
+import javafx.scene.paint.Color;
+import javafx.scene.shape.*;
+
+import java.util.ArrayList;
+import java.util.List;
+import javafx.util.Duration;
+import ui.PlayerSettings;
+
+public class MovingPieceAnimator {
+
+    private final Pane rollingContainer;
+    private final List<RollingPiece> rollingPieces = new ArrayList<>();
+    private final PlayerSettings playerSettings;
+
+    public MovingPieceAnimator(Pane rollingContainer, PlayerSettings playerSettings) {
+        this.rollingContainer = rollingContainer;
+        this.playerSettings = playerSettings;
+    }
+
+    public List<RollingPiece> getRollingPieces() {
+        return rollingPieces;
+    }
+
+    private void bounceRollingPiece(Circle piece) {
+        double startX = piece.getLayoutX();
+        double startY = piece.getLayoutY();
+
+        double bounceHeight = 100;
+        double bounceDistance = 60;
+        double baseDuration = 150;
+
+        List<Animation> bounceSequence = new ArrayList<>();
+
+        for (int i = 0; i < 5; i++) {
+            double duration = baseDuration + i * 30;
+            double offsetX = (Math.random() - 0.5) * bounceDistance;
+
+            double midX = startX + offsetX;
+            double midY = startY - bounceHeight;
+
+            double endY = startY;
+
+            KeyValue kvUpX = new KeyValue(piece.layoutXProperty(), midX, Interpolator.EASE_OUT);
+            KeyValue kvUpY = new KeyValue(piece.layoutYProperty(), midY, Interpolator.EASE_OUT);
+
+            KeyValue kvDownX = new KeyValue(piece.layoutXProperty(), midX, Interpolator.EASE_IN);
+            KeyValue kvDownY = new KeyValue(piece.layoutYProperty(), endY, Interpolator.EASE_IN);
+
+            KeyFrame kfUp = new KeyFrame(Duration.millis(duration), kvUpX, kvUpY);
+            KeyFrame kfDown = new KeyFrame(Duration.millis(duration * 2), kvDownX, kvDownY);
+
+            Timeline bounce = new Timeline(kfUp, kfDown);
+            bounceSequence.add(bounce);
+
+            // Update starting point for next bounce
+            startX = midX;
+            startY = endY;
+
+            bounceHeight *= 0.6;
+            bounceDistance *= 0.6;
+        }
+
+        SequentialTransition fullBounce = new SequentialTransition();
+        fullBounce.getChildren().addAll(bounceSequence);
+        fullBounce.play();
+    }
+
+    public void startRollingPieceAnimation() {
+        rollingContainer.getChildren().clear();
+        rollingPieces.clear();
+
+        int totalPieces = 24;
+        double radius = 10
+                ;
+
+        Platform.runLater(() -> {
+            double paneWidth = rollingContainer.getWidth();
+            double paneHeight = rollingContainer.getHeight();
+
+            for (int i = 0; i < totalPieces; i++) {
+                boolean isPlayerOne = i < 12;
+                Color color = isPlayerOne ? playerSettings.getPlayerOneColor() : playerSettings.getPlayerTwoColor();
+
+                Circle piece = new Circle(radius, color);
+                piece.setStroke(Color.BLACK);
+                piece.setStrokeWidth(4);
+
+                double x = Math.random() * (paneWidth - 2 * radius);
+                double y = -50 - Math.random() * 150;
+
+                piece.setLayoutX(x);
+                piece.setLayoutY(y);
+
+                piece.setOnMouseClicked(ev -> bounceRollingPiece(piece));
+
+                rollingContainer.getChildren().add(piece);
+                RollingPiece rp = new RollingPiece(piece, (Math.random() - 0.5) * 2, 0);
+                rollingPieces.add(rp);
+            }
+
+            startPhysicsLoop(radius, paneWidth, paneHeight);
+
+            // Refresh colors now that pieces are created
+            refreshRollingPieceColors();
+        });
+    }
+
+
+    private void startPhysicsLoop(double radius, double paneWidth, double paneHeight) {
+        final double gravity = 0.3;       // Slower descent = longer bounces
+        final double friction = 0.995;    // Slower sideways decay = longer motion
+        final double bounceLoss = 0.85;   // Higher = more energy retained after bounce
+        AnimationTimer timer = new AnimationTimer() {
+            @Override
+            public void handle(long now) {
+                for (int i = 0; i < rollingPieces.size(); i++) {
+                    RollingPiece rp = rollingPieces.get(i);
+                    Circle c = rp.circle;
+
+                    rp.vy += gravity;
+
+                    // Update position
+                    double x = c.getLayoutX() + rp.vx;
+                    double y = c.getLayoutY() + rp.vy;
+
+                    // Wall collision
+                    if (x <= radius || x >= paneWidth - radius) {
+                        rp.vx *= -1;
+                        x = Math.max(radius, Math.min(x, paneWidth - radius));
+                    }
+                    if (y >= paneHeight - radius) {
+                        y = paneHeight - radius;
+                        rp.vy *= -bounceLoss;
+                        rp.vx *= friction;
+                    }
+
+                    // Collision with other pieces
+                    for (int j = i + 1; j < rollingPieces.size(); j++) {
+                        RollingPiece other = rollingPieces.get(j);
+                        Circle oc = other.circle;
+
+                        double dx = x - oc.getLayoutX();
+                        double dy = y - oc.getLayoutY();
+                        double dist = Math.hypot(dx, dy);
+
+                        if (dist < radius * 2) {
+                            // Simple 1D elastic collision
+                            double tempVx = rp.vx;
+                            double tempVy = rp.vy;
+                            rp.vx = other.vx;
+                            rp.vy = other.vy;
+                            other.vx = tempVx;
+                            other.vy = tempVy;
+                        }
+                    }
+                    c.setLayoutX(x);
+                    c.setLayoutY(y);
+                }
+            }
+        };
+        timer.start();
+    }
+    public void refreshRollingPieceColors() {
+        Platform.runLater(() -> {
+            for (int i = 0; i < rollingPieces.size(); i++) {
+                boolean isPlayerOne = i < 12;
+                Color newColor = isPlayerOne ? playerSettings.getPlayerOneColor() : playerSettings.getPlayerTwoColor();
+                rollingPieces.get(i).setFill(newColor);
+            }
+        });
+    }
+}
