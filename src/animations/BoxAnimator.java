@@ -29,48 +29,73 @@ public class BoxAnimator {
         boxPane.getChildren().add(boxImage);
     }
 
-    public void playAnimation(Runnable onRollingPiecesStart, Runnable onFinished) {
-        RotateTransition tipBox = new RotateTransition(Duration.seconds(0.6), boxImage);
-        tipBox.setByAngle(180);
-        tipBox.setCycleCount(1);
+    public void playAnimation(Runnable onFinished) {
+        // 1. Small initial wobble (optional realism)
+        RotateTransition wobbleLeft = new RotateTransition(Duration.seconds(0.2), boxImage);
+        wobbleLeft.setByAngle(-10);
+        RotateTransition wobbleRight = new RotateTransition(Duration.seconds(0.2), boxImage);
+        wobbleRight.setByAngle(20);
+        RotateTransition wobbleCenter = new RotateTransition(Duration.seconds(0.1), boxImage);
+        wobbleCenter.setByAngle(-10);
 
-        tipBox.setOnFinished(e -> {
-            if (onRollingPiecesStart != null) {
-                onRollingPiecesStart.run();  // Start the rolling pieces
-            }
+        // 2. Fall and rotate
+        RotateTransition rotateFall = new RotateTransition(Duration.seconds(0.5), boxImage);
+        rotateFall.setByAngle(90); // Rotate to side
 
-            // Slight delay before loading board
-            PauseTransition pause = new PauseTransition(Duration.seconds(1.5));
+        TranslateTransition fall = new TranslateTransition(Duration.seconds(0.5), boxImage);
+        fall.setByY(80); // Drop down (adjust for realism)
+
+        ParallelTransition fallAndRotate = new ParallelTransition(rotateFall, fall);
+
+        // 3. Small bounce after hitting "floor"
+        TranslateTransition bounceUp = new TranslateTransition(Duration.seconds(0.2), boxImage);
+        bounceUp.setByY(-10);
+        TranslateTransition bounceDown = new TranslateTransition(Duration.seconds(0.2), boxImage);
+        bounceDown.setByY(10);
+
+        SequentialTransition bounce = new SequentialTransition(bounceUp, bounceDown);
+
+        // 4. Roll out pieces after tip
+        fallAndRotate.setOnFinished(e -> {
+            spawnRollingPieces();
+            startRollingAnimation();
+        });
+
+        // 5. Run user code after animation
+        bounce.setOnFinished(e -> {
+            PauseTransition pause = new PauseTransition(Duration.seconds(1.0));
             pause.setOnFinished(ev -> {
                 boxImage.setVisible(false);
                 if (onFinished != null) {
-                    onFinished.run();  // Load game board
+                    onFinished.run();
                 }
             });
             pause.play();
         });
 
-        new SequentialTransition(tipBox).play();
+        // Full sequence
+        SequentialTransition full = new SequentialTransition(
+                wobbleLeft, wobbleRight, wobbleCenter,
+                fallAndRotate,
+                bounce
+        );
+        full.play();
     }
 
-
-    public Node getBoxNode() {
-        return boxImage;
-    }
 
     private void spawnRollingPieces() {
         rollingPieces.clear();
-        int NUM_PIECES = 8;
+        int NUM_PIECES = 14;
         for (int i = 0; i < NUM_PIECES; i++) {
             Circle circle = new Circle(10);
             circle.setFill(getRandomColor());
 
-            // Start near the box (bottom-left)
-            circle.setTranslateX(50);
-            circle.setTranslateY(200);
+            // Position near the tip of the box (bottom-left)
+            circle.setTranslateX(boxImage.getTranslateX() + 80);
+            circle.setTranslateY(boxImage.getTranslateY() + boxImage.getFitHeight() - 10);
 
-            double vx = random.nextDouble() * 2 + 1;  // 1.0–3.0
-            double vy = -random.nextDouble() * 5 - 2; // -2.0 to -7.0 (upward)
+            double vx = random.nextDouble() * 3 + 1;  // Horizontal burst
+            double vy = -random.nextDouble() * 5 - 2; // Initial upward force
 
             RollingPiece rp = new RollingPiece(circle, vx, vy);
             rollingPieces.add(rp);
@@ -108,6 +133,10 @@ public class BoxAnimator {
         PauseTransition stop = new PauseTransition(Duration.seconds(1.5));
         stop.setOnFinished(e -> timer.stop());
         stop.play();
+    }
+
+    public Node getBoxNode() {
+        return boxImage;
     }
 
     private Color getRandomColor() {

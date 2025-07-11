@@ -1,11 +1,7 @@
 package ui;
 
-import animations.BoxAnimator;
-import animations.MovingPieceAnimator;
 import javafx.application.Application;
-import javafx.application.Platform;
 import javafx.geometry.Pos;
-import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.layout.*;
@@ -17,8 +13,6 @@ import logic.GameController;
 
 public class GUI extends Application {
     private GameController controller;
-    private BoxAnimator boxAnimator;
-    private MovingPieceAnimator movingPieceAnimator;
 
     public static void main(String[] args) {
         try {
@@ -58,13 +52,6 @@ public class GUI extends Application {
         AnchorPane.setRightAnchor(contentBox, 0.0);
         anchorRoot.getChildren().add(contentBox);
 
-        // Add cardboard box
-        boxAnimator = new BoxAnimator(anchorRoot);
-        Node boxNode = boxAnimator.getBoxNode();
-        AnchorPane.setLeftAnchor(boxNode, 20.0);
-        AnchorPane.setBottomAnchor(boxNode, 5.0);  // Lower the box more
-        movingPieceAnimator = new MovingPieceAnimator(anchorRoot, controller.getPlayerSettings());
-
         // Show scene
         Scene scene = new Scene(anchorRoot, 700, 300);
         primaryStage.setTitle("Connect4Game");
@@ -74,29 +61,20 @@ public class GUI extends Application {
 
         // Button actions (defer name dialog to avoid IllegalStateException)
         playerButton.setOnAction(e -> {
-            boxAnimator.playAnimation(
-                    () -> movingPieceAnimator.startRollingPieceAnimation(), // Run this after box tips
-                    () -> Platform.runLater(() -> {
-                        controller.setVsComputer(false);
-                        PlayerNameDialog dialog = new PlayerNameDialog(controller.getPlayerSettings(), false);
-                        if (dialog.showAndReturnResult()) {
-                            controller.loadBoard("Player vs. Player");
-                        }
-                    })
-            );
+            controller.setVsComputer(false);
+            PlayerNameDialog dialog = new PlayerNameDialog(controller.getPlayerSettings(), false);
+            if (dialog.showAndReturnResult()) {
+                controller.loadBoard("Player vs. Player");
+            }
         });
 
         playerComputer.setOnAction(e -> {
-            boxAnimator.playAnimation(
-                    () -> movingPieceAnimator.startRollingPieceAnimation(),
-                    () -> Platform.runLater(() -> {
-                        controller.setVsComputer(true);
-                        PlayerNameDialog dialog = new PlayerNameDialog(controller.getPlayerSettings(), true);
-                        if (dialog.showAndReturnResult()) {
-                            controller.loadBoard("Player vs. Computer");
-                        }
-                    })
-            );
+            controller.setVsComputer(true);
+            PlayerNameDialog dialog = new PlayerNameDialog(controller.getPlayerSettings(), true);
+            if (dialog.showAndReturnResult()) {
+                controller.loadBoard("Player vs. Computer");
+            }
         });
+
     }
 }
