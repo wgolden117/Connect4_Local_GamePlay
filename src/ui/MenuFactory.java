@@ -25,9 +25,18 @@ public class MenuFactory {
 
         // File Menu
         Menu fileMenu = new Menu("File");
+
+        MenuItem mainMenuItem = new MenuItem("Main Menu");
+        mainMenuItem.setOnAction(e -> {
+            controller.stopBackgroundMusic(); // Stop existing music
+            new GUI().start(primaryStage);    // Reload initial GUI
+        });
+
         MenuItem exitItem = new MenuItem("Exit");
         exitItem.setOnAction(e -> onExit.run());
-        fileMenu.getItems().add(exitItem);
+
+        fileMenu.getItems().addAll(mainMenuItem, exitItem);
+
 
         // Settings Menu
         Menu settingsMenu = new Menu("Settings");
