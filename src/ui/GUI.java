@@ -67,7 +67,20 @@ public class GUI extends Application {
         primaryStage.show();
 
         // Now wire up buttons to controller
-        playerButton.setOnAction(event -> controller.loadBoard("Player vs. Player"));
-        playerComputer.setOnAction(event -> controller.loadBoard("Player vs. Computer"));
+        playerButton.setOnAction(event -> {
+            controller.setVsComputer(false);
+            PlayerNameDialog dialog = new PlayerNameDialog(controller.getPlayerSettings(), false);
+            if (dialog.showAndReturnResult()) {
+                controller.loadBoard("Player vs. Player");
+            }
+        });
+
+        playerComputer.setOnAction(event -> {
+            controller.setVsComputer(true);
+            PlayerNameDialog dialog = new PlayerNameDialog(controller.getPlayerSettings(), true);
+            if (dialog.showAndReturnResult()) {
+                controller.loadBoard("Player vs. Computer");
+            }
+        });
     }
 }

@@ -74,17 +74,35 @@ public class BoardLayout {
         });
 
         // UI layout
-        MenuFactory menuFactory = new MenuFactory(controller::closeApplication, controller.getStage(), playerSettings, controller);
+        MenuFactory menuFactory = new MenuFactory(
+                controller::closeApplication,
+                controller.getStage(),
+                playerSettings,
+                controller,
+                controller.isVsComputer()
+        );
+
         MenuBar menuBar = menuFactory.createMenuBar();
 
         Label label = new Label(" " + labelText + " ");
         label.setFont(Font.font("Ariel", FontWeight.BOLD, FontPosture.ITALIC, 22));
         VBox.setMargin(label, new Insets(40, 0, 0, 0));
 
+        HBox nameBox = new HBox(50);
+        nameBox.setAlignment(Pos.CENTER);
+
+        Label player1Label = new Label("Player 1: " + playerSettings.getPlayerOneName());
+        Label player2Label = new Label("Player 2: " + playerSettings.getPlayerTwoName());
+
+        player1Label.setFont(Font.font("Arial", FontWeight.BOLD, 18));
+        player2Label.setFont(Font.font("Arial", FontWeight.BOLD, 18));
+
+        nameBox.getChildren().addAll(player1Label, player2Label);
+
         VBox centerBox = new VBox(30);
         centerBox.setAlignment(Pos.TOP_CENTER);
         VBox.setVgrow(centerBox, Priority.ALWAYS);
-        centerBox.getChildren().addAll(label, grid);
+        centerBox.getChildren().addAll(label, nameBox, grid);
 
         BorderPane layout = new BorderPane();
         layout.setTop(menuBar);

@@ -38,6 +38,7 @@ public class GameController {
     private GameAnimator gameAnimator;
     private ConfettiAnimator confettiAnimator;
     private MovingPieceAnimator movingPieceAnimator;
+    private boolean vsComputer;
 
 
     public GameController(Stage primaryStage) {
@@ -53,12 +54,24 @@ public class GameController {
         playBackgroundMusic();   // Start playing it immediately
     }
 
+    public void setVsComputer(boolean vsComputer) {
+        this.vsComputer = vsComputer;
+    }
+
+    public boolean isVsComputer() {
+        return vsComputer;
+    }
+
     public Stage getStage() {
         return stage;
     }
 
     public MovingPieceAnimator getMovingPieceAnimator() {
         return movingPieceAnimator;
+    }
+
+    public PlayerSettings getPlayerSettings() {
+        return playerSettings;
     }
 
     public void setDropSoundEnabled(boolean enabled) {
