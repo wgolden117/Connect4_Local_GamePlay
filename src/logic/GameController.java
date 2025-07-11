@@ -151,7 +151,6 @@ public class GameController {
         });
     }
 
-
     public void dropPiece(int col, String labelText, StackPane rootPane) {
         if (gameState.isGameOver() || gameLogic.isColumnFull(col)) {
             displayMessage("Column is full. Please choose another column!", false, labelText);

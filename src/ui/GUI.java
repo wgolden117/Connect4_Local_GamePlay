@@ -1,86 +1,102 @@
 package ui;
 
+import animations.BoxAnimator;
+import animations.MovingPieceAnimator;
 import javafx.application.Application;
+import javafx.application.Platform;
 import javafx.geometry.Pos;
+import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
-import javafx.scene.layout.HBox;
-import javafx.scene.layout.VBox;
+import javafx.scene.layout.*;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontPosture;
 import javafx.scene.text.FontWeight;
 import javafx.stage.Stage;
 import logic.GameController;
 
-/**
- * Class to implement a GUI
- */
 public class GUI extends Application {
     private GameController controller;
+    private BoxAnimator boxAnimator;
+    private MovingPieceAnimator movingPieceAnimator;
 
     public static void main(String[] args) {
         try {
-            System.out.println("Main() started");
             launch(args);
         } catch (Throwable t) {
-            System.err.println("Fatal error during launch:");
             t.printStackTrace(System.err);
         }
     }
-    /**
-     * start method that creates the GUI to ask the user
-     * if they would like to play vs. another player
-     * or the computer
-     *
-     * @param primaryStage primaryStage
-     */
+
     @Override
     public void start(Stage primaryStage) {
-        System.out.println("Launching GUI...");
-
-        // Create controller FIRST
         controller = new GameController(primaryStage);
 
-        Label labelSpace = new Label(" ");
-        Label label = new Label("   Select Player to play against another player. Select Computer to play against the Computer  ");
-        label.setFont(Font.font("Courier", FontWeight.BOLD,
-                FontPosture.ITALIC, 15));
+        // Label
+        Label label = new Label("Select Player to play against another player. Select Computer to play against the Computer");
+        label.setFont(Font.font("Courier", FontWeight.BOLD, FontPosture.ITALIC, 15));
+        label.setWrapText(true);
+        label.setAlignment(Pos.CENTER);
 
+        // Buttons
         Button playerButton = new Button("Player");
         Button playerComputer = new Button("Computer");
+        HBox buttonBox = new HBox(20, playerButton, playerComputer);
+        buttonBox.setAlignment(Pos.CENTER);
 
-        HBox hbox = new HBox();
-        hbox.getChildren().addAll(playerButton, playerComputer);
-        hbox.setSpacing(20);
-        hbox.setAlignment(Pos.CENTER);
+        // Combine into VBox
+        VBox contentBox = new VBox(20, label, buttonBox);
+        contentBox.setAlignment(Pos.CENTER);
 
-        VBox vbox = new VBox();
-        vbox.getChildren().addAll(labelSpace, label, hbox);
-        vbox.setSpacing(20);
-        vbox.setAlignment(Pos.CENTER);
+        // Use AnchorPane as the root
+        AnchorPane anchorRoot = new AnchorPane();
 
-        Scene scene = new Scene(vbox, 680, 150);
+        // Anchor it to top AND bottom to allow vertical centering
+        AnchorPane.setTopAnchor(contentBox, 50.0);         // Top margin
+        AnchorPane.setBottomAnchor(contentBox, 50.0);      // Bottom margin
+        AnchorPane.setLeftAnchor(contentBox, 0.0);
+        AnchorPane.setRightAnchor(contentBox, 0.0);
+        anchorRoot.getChildren().add(contentBox);
+
+        // Add cardboard box
+        boxAnimator = new BoxAnimator(anchorRoot);
+        Node boxNode = boxAnimator.getBoxNode();
+        AnchorPane.setLeftAnchor(boxNode, 20.0);
+        AnchorPane.setBottomAnchor(boxNode, 5.0);  // Lower the box more
+        movingPieceAnimator = new MovingPieceAnimator(anchorRoot, controller.getPlayerSettings());
+
+        // Show scene
+        Scene scene = new Scene(anchorRoot, 700, 300);
         primaryStage.setTitle("Connect4Game");
         primaryStage.setScene(scene);
-
-        primaryStage.setOnCloseRequest(event -> controller.closeApplication());
+        primaryStage.setOnCloseRequest(e -> controller.closeApplication());
         primaryStage.show();
 
-        // Now wire up buttons to controller
-        playerButton.setOnAction(event -> {
-            controller.setVsComputer(false);
-            PlayerNameDialog dialog = new PlayerNameDialog(controller.getPlayerSettings(), false);
-            if (dialog.showAndReturnResult()) {
-                controller.loadBoard("Player vs. Player");
-            }
+        // Button actions (defer name dialog to avoid IllegalStateException)
+        playerButton.setOnAction(e -> {
+            boxAnimator.playAnimation(
+                    () -> movingPieceAnimator.startRollingPieceAnimation(), // Run this after box tips
+                    () -> Platform.runLater(() -> {
+                        controller.setVsComputer(false);
+                        PlayerNameDialog dialog = new PlayerNameDialog(controller.getPlayerSettings(), false);
+                        if (dialog.showAndReturnResult()) {
+                            controller.loadBoard("Player vs. Player");
+                        }
+                    })
+            );
         });
 
-        playerComputer.setOnAction(event -> {
-            controller.setVsComputer(true);
-            PlayerNameDialog dialog = new PlayerNameDialog(controller.getPlayerSettings(), true);
-            if (dialog.showAndReturnResult()) {
-                controller.loadBoard("Player vs. Computer");
-            }
+        playerComputer.setOnAction(e -> {
+            boxAnimator.playAnimation(
+                    () -> movingPieceAnimator.startRollingPieceAnimation(),
+                    () -> Platform.runLater(() -> {
+                        controller.setVsComputer(true);
+                        PlayerNameDialog dialog = new PlayerNameDialog(controller.getPlayerSettings(), true);
+                        if (dialog.showAndReturnResult()) {
+                            controller.loadBoard("Player vs. Computer");
+                        }
+                    })
+            );
         });
     }
 }

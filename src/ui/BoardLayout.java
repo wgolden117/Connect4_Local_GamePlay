@@ -36,6 +36,7 @@ public class BoardLayout {
     public Optional<StackPane> createBoardLayout(String labelText, GameController controller) {
         StackPane root = new StackPane();
         root.setPrefSize(850, 850);
+        root.setMaxSize(850, 850);
         // --- Rolling pieces container ---
         Pane rollingPieceContainer = new Pane();
         rollingPieceContainer.setPrefHeight(200);

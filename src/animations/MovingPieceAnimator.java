@@ -91,7 +91,7 @@ public class MovingPieceAnimator {
                 piece.setStrokeWidth(4);
 
                 double x = Math.random() * (paneWidth - 2 * radius);
-                double y = -50 - Math.random() * 150;
+                double y = -200 - Math.random() * 100; // Spawn well above visible pane
 
                 piece.setLayoutX(x);
                 piece.setLayoutY(y);
