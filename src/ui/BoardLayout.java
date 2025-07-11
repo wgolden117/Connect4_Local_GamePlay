@@ -4,6 +4,7 @@ import animations.ConfettiAnimator;
 import animations.GameAnimator;
 import animations.MovingPieceAnimator;
 import javafx.application.Platform;
+import javafx.beans.binding.Bindings;
 import javafx.geometry.HPos;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
@@ -19,9 +20,6 @@ import javafx.scene.layout.BorderStroke;
 import javafx.scene.layout.BorderStrokeStyle;
 import javafx.scene.layout.CornerRadii;
 import javafx.scene.layout.BorderWidths;
-import javafx.scene.paint.Paint;
-
-
 import java.util.*;
 
 public class BoardLayout {
@@ -99,8 +97,15 @@ public class BoardLayout {
         HBox nameBox = new HBox(50);
         nameBox.setAlignment(Pos.CENTER);
 
-        player1Label = new Label("Player 1: " + playerSettings.getPlayerOneName());
-        player2Label = new Label("Player 2: " + playerSettings.getPlayerTwoName());
+        player1Label = new Label();
+        player1Label.textProperty().bind(
+                Bindings.concat("Player 1: ").concat(playerSettings.playerOneNameProperty())
+        );
+
+        player2Label = new Label();
+        player2Label.textProperty().bind(
+                Bindings.concat("Player 2: ").concat(playerSettings.playerTwoNameProperty())
+        );
 
         player1Label.setFont(Font.font("Arial", FontWeight.BOLD, 18));
         player2Label.setFont(Font.font("Arial", FontWeight.BOLD, 18));

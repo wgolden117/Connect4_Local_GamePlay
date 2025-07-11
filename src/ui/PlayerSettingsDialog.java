@@ -62,13 +62,22 @@ public class PlayerSettingsDialog {
             String name1 = nameOneField.getText().trim();
             String name2 = vsComputer ? "Computer" : nameTwoField.getText().trim();
 
-            if (!isValidName(name1)) {
-                showAlert("Invalid Player 1 Name", "Name must be alphanumeric and up to 12 characters.");
+            String error1 = NameValidator.validate(name1, "Player 1");
+            String error2 = vsComputer ? null : NameValidator.validate(name2, "Player 2");
+
+            if (!vsComputer && name1.equalsIgnoreCase(name2)) {
+                showError("Player names must be different.");
                 return;
             }
 
-            if (!vsComputer && !isValidName(name2)) {
-                showAlert("Invalid Player 2 Name", "Name must be alphanumeric and up to 12 characters.");
+            if (error1 != null && error2 != null) {
+                showError(error1 + "\n" + error2);
+                return;
+            } else if (error1 != null) {
+                showError(error1);
+                return;
+            } else if (error2 != null) {
+                showError(error2);
                 return;
             }
 
@@ -102,16 +111,10 @@ public class PlayerSettingsDialog {
         dialogStage.showAndWait();
     }
 
-    private boolean isValidName(String name) {
-        return name.matches("[A-Za-z0-9]{1,12}");
-    }
-
-    private void showAlert(String title, String message) {
+    private void showError(String message) {
         Alert alert = new Alert(Alert.AlertType.ERROR);
-        alert.setTitle(title);
         alert.setHeaderText(null);
         alert.setContentText(message);
-        alert.initModality(Modality.APPLICATION_MODAL);
         alert.showAndWait();
     }
 }

@@ -39,8 +39,8 @@ public class PlayerNameDialog {
             String name1 = player1Field.getText().trim();
             String name2 = vsComputer ? "Computer" : player2Field.getText().trim();
 
-            String error1 = validateName(name1, "Player 1");
-            String error2 = vsComputer ? null : validateName(name2, "Player 2");
+            String error1 = NameValidator.validate(name1, "Player 1");
+            String error2 = vsComputer ? null : NameValidator.validate(name2, "Player 2");
 
             if (error1 != null && error2 != null) {
                 showError(error1 + "\n" + error2);
@@ -50,6 +50,12 @@ public class PlayerNameDialog {
                 return;
             } else if (error2 != null) {
                 showError(error2);
+                return;
+            }
+
+            // New check: same name (only if not vsComputer)
+            if (!vsComputer && name1.equalsIgnoreCase(name2)) {
+                showError("Player 1 and Player 2 cannot have the same name.");
                 return;
             }
 
@@ -73,19 +79,6 @@ public class PlayerNameDialog {
         grid.add(cancelButton, 1, 2);
 
         dialogStage.setScene(new Scene(grid));
-    }
-
-    private String validateName(String name, String playerLabel) {
-        if (name.isEmpty()) {
-            return playerLabel + " name cannot be blank. Please choose a name!";
-        }
-        if (!name.matches("[A-Za-z0-9]+")) {
-            return playerLabel + " name contains special characters. Only letters and numbers are allowed!";
-        }
-        if (name.length() > 12) {
-            return playerLabel + " name is too long. Please use 12 characters or fewer!";
-        }
-        return null;
     }
 
     private void showError(String message) {
