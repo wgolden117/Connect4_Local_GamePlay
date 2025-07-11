@@ -31,7 +31,7 @@ public class MenuFactory {
 
         // Settings Menu
         Menu settingsMenu = new Menu("Settings");
-        MenuItem colorItem = new MenuItem("Change Player Colors");
+        MenuItem colorItem = new MenuItem("Player Preferences");
         colorItem.setOnAction(e -> {
             PlayerSettingsDialog dialog = new PlayerSettingsDialog(playerSettings, vsComputer);
             dialog.show();

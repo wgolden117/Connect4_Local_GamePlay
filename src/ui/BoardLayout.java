@@ -9,16 +9,26 @@ import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.*;
 import javafx.scene.layout.*;
+import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontPosture;
 import javafx.scene.text.FontWeight;
 import logic.*;
+import javafx.scene.layout.Border;
+import javafx.scene.layout.BorderStroke;
+import javafx.scene.layout.BorderStrokeStyle;
+import javafx.scene.layout.CornerRadii;
+import javafx.scene.layout.BorderWidths;
+import javafx.scene.paint.Paint;
+
 
 import java.util.*;
 
 public class BoardLayout {
     private final GameLogic gameLogic;
     private final PlayerSettings playerSettings;
+    private Label player1Label;
+    private Label player2Label;
 
     public BoardLayout(GameLogic gameLogic, PlayerSettings playerSettings) {
         this.gameLogic = gameLogic;
@@ -44,8 +54,6 @@ public class BoardLayout {
         ConfettiAnimator confettiAnimator = new ConfettiAnimator(root, rollingPieceContainer, movingPieceAnimator.getRollingPieces());
         controller.setConfettiAnimator(confettiAnimator);
 
-
-
         GridPane grid = boardRenderer.createGrid();
         grid.setHgap(10);
         grid.setVgap(10);
@@ -60,7 +68,7 @@ public class BoardLayout {
                     playerSettings.getPlayerTwoColor()
             );
             controller.getMovingPieceAnimator().refreshRollingPieceColors();
-
+            refreshTurnHighlight(controller.getGameStateManager().getCurrentPlayer());
         });
 
         playerSettings.playerTwoColorProperty().addListener((obs, oldColor, newColor) -> {
@@ -70,7 +78,7 @@ public class BoardLayout {
                     playerSettings.getPlayerTwoColor()
             );
             controller.getMovingPieceAnimator().refreshRollingPieceColors();
-
+            refreshTurnHighlight(controller.getGameStateManager().getCurrentPlayer());
         });
 
         // UI layout
@@ -91,13 +99,14 @@ public class BoardLayout {
         HBox nameBox = new HBox(50);
         nameBox.setAlignment(Pos.CENTER);
 
-        Label player1Label = new Label("Player 1: " + playerSettings.getPlayerOneName());
-        Label player2Label = new Label("Player 2: " + playerSettings.getPlayerTwoName());
+        player1Label = new Label("Player 1: " + playerSettings.getPlayerOneName());
+        player2Label = new Label("Player 2: " + playerSettings.getPlayerTwoName());
 
         player1Label.setFont(Font.font("Arial", FontWeight.BOLD, 18));
         player2Label.setFont(Font.font("Arial", FontWeight.BOLD, 18));
 
         nameBox.getChildren().addAll(player1Label, player2Label);
+        updateTurnHighlight(controller.getGameStateManager().getCurrentPlayer());
 
         VBox centerBox = new VBox(30);
         centerBox.setAlignment(Pos.TOP_CENTER);
@@ -143,6 +152,28 @@ public class BoardLayout {
 
 
         return Optional.of(root);
+    }
+
+    private void updateTurnHighlight(int currentPlayer) {
+        Color borderColor = (currentPlayer == 1)
+                ? playerSettings.getPlayerOneColor()
+                : playerSettings.getPlayerTwoColor();
+
+        Label activeLabel = (currentPlayer == 1) ? player1Label : player2Label;
+        Label inactiveLabel = (currentPlayer == 1) ? player2Label : player1Label;
+
+        activeLabel.setBorder(new Border(new BorderStroke(
+                borderColor,
+                BorderStrokeStyle.SOLID,
+                new CornerRadii(8),
+                new BorderWidths(3)
+        )));
+
+        inactiveLabel.setBorder(null);
+    }
+
+    public void refreshTurnHighlight(int currentPlayer) {
+        updateTurnHighlight(currentPlayer);
     }
 
     private void setupPlayerVsPlayer(GridPane grid, GameController controller, String labelText, Button[] buttons, StackPane root) {

@@ -39,7 +39,7 @@ public class GameController {
     private ConfettiAnimator confettiAnimator;
     private MovingPieceAnimator movingPieceAnimator;
     private boolean vsComputer;
-
+    private BoardLayout boardLayout;
 
     public GameController(Stage primaryStage) {
         this.stage = primaryStage;
@@ -72,6 +72,10 @@ public class GameController {
 
     public PlayerSettings getPlayerSettings() {
         return playerSettings;
+    }
+
+    public GameStateManager getGameStateManager() {
+        return gameState;
     }
 
     public void setDropSoundEnabled(boolean enabled) {
@@ -119,7 +123,7 @@ public class GameController {
         }
 
         // Create a brand new BoardLayout each time
-        BoardLayout boardLayout = new BoardLayout(gameLogic, playerSettings);
+        this.boardLayout = new BoardLayout(gameLogic, playerSettings);
         Optional<StackPane> optionalLayout = boardLayout.createBoardLayout(labelText, this);
 
         if (optionalLayout.isEmpty()) {
@@ -194,6 +198,9 @@ public class GameController {
                 displayMessage("It's a Draw!", true, labelText);
             } else {
                 gameState.switchPlayer();
+                if (boardLayout != null) {
+                    boardLayout.refreshTurnHighlight(gameState.getCurrentPlayer());
+                }
 
                 // Let AI play automatically if it's their turn
                 if (labelText.equals("Player vs. Computer") && gameState.getCurrentPlayer() == 2) {
