@@ -1,32 +1,32 @@
 package ui;
 
-import javafx.animation.*;
+import animations.ConfettiAnimator;
+import animations.GameAnimator;
+import animations.MovingPieceAnimator;
+import javafx.application.Platform;
+import javafx.beans.binding.Bindings;
 import javafx.geometry.HPos;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.*;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
-import javafx.scene.shape.Rectangle;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontPosture;
 import javafx.scene.text.FontWeight;
-import javafx.scene.shape.Path;
-import javafx.scene.shape.MoveTo;
-import javafx.scene.shape.QuadCurveTo;
-import javafx.animation.PathTransition;
-import javafx.animation.RotateTransition;
-
-import javafx.util.Duration;
 import logic.*;
-
+import javafx.scene.layout.Border;
+import javafx.scene.layout.BorderStroke;
+import javafx.scene.layout.BorderStrokeStyle;
+import javafx.scene.layout.CornerRadii;
+import javafx.scene.layout.BorderWidths;
 import java.util.*;
 
 public class BoardLayout {
     private final GameLogic gameLogic;
     private final PlayerSettings playerSettings;
-    private final List<Animation> activeConfettiAnimations = new ArrayList<>();
-    private final Random random = new Random();
+    private Label player1Label;
+    private Label player2Label;
 
     public BoardLayout(GameLogic gameLogic, PlayerSettings playerSettings) {
         this.gameLogic = gameLogic;
@@ -34,15 +34,24 @@ public class BoardLayout {
     }
 
     public Optional<StackPane> createBoardLayout(String labelText, GameController controller) {
-        StackPane root = new StackPane(); // For animation overlay
+        StackPane root = new StackPane();
         root.setPrefSize(850, 850);
-
-        // --- New rolling piece container at bottom ---
+        root.setMaxSize(850, 850);
+        // --- Rolling pieces container ---
         Pane rollingPieceContainer = new Pane();
         rollingPieceContainer.setPrefHeight(200);
         rollingPieceContainer.setStyle("-fx-background-color: transparent;");
 
-        BoardRenderer boardRenderer = new BoardRenderer(root, playerSettings, rollingPieceContainer);
+        // Set up board renderer
+        BoardRenderer boardRenderer = new BoardRenderer(root, playerSettings);
+        GameAnimator gameAnimator = new GameAnimator(root, boardRenderer.getCircles());
+        controller.setGameAnimator(gameAnimator);
+
+        // Setup animations
+        MovingPieceAnimator movingPieceAnimator = new MovingPieceAnimator(rollingPieceContainer, playerSettings);
+        controller.setMovingPieceAnimator(movingPieceAnimator);
+        ConfettiAnimator confettiAnimator = new ConfettiAnimator(root, rollingPieceContainer, movingPieceAnimator.getRollingPieces());
+        controller.setConfettiAnimator(confettiAnimator);
 
         GridPane grid = boardRenderer.createGrid();
         grid.setHgap(10);
@@ -50,14 +59,15 @@ public class BoardLayout {
         grid.setAlignment(Pos.CENTER);
         grid.setMaxSize(Region.USE_COMPUTED_SIZE, Region.USE_COMPUTED_SIZE);
 
-        // Reactive color updates
+        // Reactive color changes
         playerSettings.playerOneColorProperty().addListener((obs, oldColor, newColor) -> {
             boardRenderer.refreshColors(
                     gameLogic.getBoard(),
                     playerSettings.getPlayerOneColor(),
                     playerSettings.getPlayerTwoColor()
             );
-            boardRenderer.refreshRollingPieceColors();
+            controller.getMovingPieceAnimator().refreshRollingPieceColors();
+            refreshTurnHighlight(controller.getGameStateManager().getCurrentPlayer());
         });
 
         playerSettings.playerTwoColorProperty().addListener((obs, oldColor, newColor) -> {
@@ -66,32 +76,58 @@ public class BoardLayout {
                     playerSettings.getPlayerOneColor(),
                     playerSettings.getPlayerTwoColor()
             );
-            boardRenderer.refreshRollingPieceColors();
+            controller.getMovingPieceAnimator().refreshRollingPieceColors();
+            refreshTurnHighlight(controller.getGameStateManager().getCurrentPlayer());
         });
 
-        // Menu bar
-        MenuFactory menuFactory = new MenuFactory(controller::closeApplication, controller.getStage(), playerSettings, controller);
+        // UI layout
+        MenuFactory menuFactory = new MenuFactory(
+                controller::closeApplication,
+                controller.getStage(),
+                playerSettings,
+                controller,
+                controller.isVsComputer()
+        );
+
         MenuBar menuBar = menuFactory.createMenuBar();
 
         Label label = new Label(" " + labelText + " ");
         label.setFont(Font.font("Ariel", FontWeight.BOLD, FontPosture.ITALIC, 22));
         VBox.setMargin(label, new Insets(40, 0, 0, 0));
 
+        HBox nameBox = new HBox(50);
+        nameBox.setAlignment(Pos.CENTER);
+
+        player1Label = new Label();
+        player1Label.textProperty().bind(
+                Bindings.concat("Player 1: ").concat(playerSettings.playerOneNameProperty())
+        );
+
+        player2Label = new Label();
+        player2Label.textProperty().bind(
+                Bindings.concat("Player 2: ").concat(playerSettings.playerTwoNameProperty())
+        );
+
+        player1Label.setFont(Font.font("Arial", FontWeight.BOLD, 18));
+        player2Label.setFont(Font.font("Arial", FontWeight.BOLD, 18));
+
+        nameBox.getChildren().addAll(player1Label, player2Label);
+        updateTurnHighlight(controller.getGameStateManager().getCurrentPlayer());
+
         VBox centerBox = new VBox(30);
         centerBox.setAlignment(Pos.TOP_CENTER);
         VBox.setVgrow(centerBox, Priority.ALWAYS);
-        centerBox.getChildren().addAll(label, grid);
+        centerBox.getChildren().addAll(label, nameBox, grid);
 
-        // Wrap with BorderPane to pin UI pieces
         BorderPane layout = new BorderPane();
         layout.setTop(menuBar);
         layout.setCenter(centerBox);
         layout.setBottom(rollingPieceContainer);
 
-        // Add layout to root (for animation layering)
+        // Add layout to persistent root field
+        root.getChildren().clear();
         root.getChildren().add(layout);
 
-        // Setup buttons
         Button[] buttons = new Button[7];
         if (labelText.equals("Player vs. Player")) {
             setupPlayerVsPlayer(grid, controller, labelText, buttons, root);
@@ -113,12 +149,38 @@ public class BoardLayout {
 
         boardRenderer.setButtons(buttons);
         controller.setBoardRenderer(boardRenderer);
-        boardRenderer.startRollingPieceAnimation(); // Rolling starts
-        controller.setConfettiHandlers(() -> startConfettiAnimation(root));
+        movingPieceAnimator.startRollingPieceAnimation();
+
+        // Ensure color refresh happens after rolling pieces are fully added
+        Platform.runLater(movingPieceAnimator::refreshRollingPieceColors);
+
+        controller.setConfettiHandlers(confettiAnimator::startConfettiAnimation);
+
 
         return Optional.of(root);
     }
 
+    private void updateTurnHighlight(int currentPlayer) {
+        Color borderColor = (currentPlayer == 1)
+                ? playerSettings.getPlayerOneColor()
+                : playerSettings.getPlayerTwoColor();
+
+        Label activeLabel = (currentPlayer == 1) ? player1Label : player2Label;
+        Label inactiveLabel = (currentPlayer == 1) ? player2Label : player1Label;
+
+        activeLabel.setBorder(new Border(new BorderStroke(
+                borderColor,
+                BorderStrokeStyle.SOLID,
+                new CornerRadii(8),
+                new BorderWidths(3)
+        )));
+
+        inactiveLabel.setBorder(null);
+    }
+
+    public void refreshTurnHighlight(int currentPlayer) {
+        updateTurnHighlight(currentPlayer);
+    }
 
     private void setupPlayerVsPlayer(GridPane grid, GameController controller, String labelText, Button[] buttons, StackPane root) {
         for (int col = 0; col < 7; col++) {
@@ -126,14 +188,13 @@ public class BoardLayout {
             int finalCol = col;
             button.setOnAction(e -> controller.dropPiece(finalCol, labelText, root));
             buttons[col] = button;
-            grid.add(button, col, 6); // Buttons row
+            grid.add(button, col, 6);
             GridPane.setHalignment(button, HPos.CENTER);
 
-            // Add number label below each button
             Label numberLabel = new Label(String.valueOf(col + 1));
             numberLabel.setStyle("-fx-font-weight: bold;");
             numberLabel.setFont(Font.font("Arial", FontWeight.BOLD, 30));
-            grid.add(numberLabel, col, 7); // Row 7 for numbers
+            grid.add(numberLabel, col, 7);
             GridPane.setHalignment(numberLabel, HPos.CENTER);
         }
     }
@@ -148,53 +209,10 @@ public class BoardLayout {
             GridPane.setHalignment(button, HPos.CENTER);
 
             Label numberLabel = new Label(String.valueOf(col + 1));
-            numberLabel.setFont(Font.font("Arial", FontWeight.BOLD, 30));
             numberLabel.setStyle("-fx-font-weight: bold;");
-            grid.add(numberLabel, col, 7);// Row 7 for numbers
+            numberLabel.setFont(Font.font("Arial", FontWeight.BOLD, 30));
+            grid.add(numberLabel, col, 7);
             GridPane.setHalignment(numberLabel, HPos.CENTER);
         }
     }
-
-    public void startConfettiAnimation(StackPane root) {
-        Timeline timeline = new Timeline(new KeyFrame(Duration.millis(250), e -> {
-            for (int i = 0; i < 5; i++) { // Drop 5 confetti at once per tick
-                double width = 4 + random.nextDouble() * 4;
-                double height = 8 + random.nextDouble() * 4;
-                Rectangle confetti = new Rectangle(width, height, Color.color(random.nextDouble(), random.nextDouble(), random.nextDouble()));
-                confetti.setTranslateX(random.nextDouble() * root.getWidth() - root.getWidth() / 2);
-                confetti.setTranslateY(-root.getHeight() / 2 - 20 - random.nextDouble() * 30); // Start above top
-
-                root.getChildren().add(confetti);
-
-                // Crazy falling path
-                Path path = new Path();
-                path.getElements().add(new MoveTo(confetti.getTranslateX(), confetti.getTranslateY()));
-                double controlX = confetti.getTranslateX() + (random.nextDouble() - 0.5) * 100;
-                double controlY = root.getHeight() / 2 + random.nextDouble() * 100;
-                double endX = confetti.getTranslateX() + (random.nextDouble() - 0.5) * 100;
-                double endY = root.getHeight();
-
-                path.getElements().add(new QuadCurveTo(controlX, controlY, endX, endY));
-
-                PathTransition fall = new PathTransition(Duration.seconds(3 + random.nextDouble()), path, confetti);
-                fall.setInterpolator(Interpolator.EASE_OUT);
-
-                RotateTransition spin = new RotateTransition(Duration.seconds(3), confetti);
-                spin.setByAngle(360);
-                spin.setCycleCount(Animation.INDEFINITE);
-
-                ParallelTransition drop = new ParallelTransition(confetti, fall, spin);
-                drop.setOnFinished(ev -> root.getChildren().remove(confetti));
-                drop.play();
-
-                activeConfettiAnimations.add(drop);
-            }
-        }));
-
-        timeline.setCycleCount(Animation.INDEFINITE);
-        timeline.play();
-        activeConfettiAnimations.add(timeline);
-    }
-
-
 }

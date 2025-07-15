@@ -10,12 +10,14 @@ public class MenuFactory {
     private final Stage primaryStage;
     private final PlayerSettings playerSettings;
     private final GameController controller;
+    private final boolean vsComputer;
 
-    public MenuFactory(Runnable onExit, Stage primaryStage, PlayerSettings playerSettings, GameController controller) {
+    public MenuFactory(Runnable onExit, Stage primaryStage, PlayerSettings playerSettings, GameController controller, boolean vsComputer) {
         this.onExit = onExit;
         this.primaryStage = primaryStage;
         this.playerSettings = playerSettings;
         this.controller = controller;
+        this.vsComputer = vsComputer;
     }
 
     public MenuBar createMenuBar() {
@@ -23,15 +25,24 @@ public class MenuFactory {
 
         // File Menu
         Menu fileMenu = new Menu("File");
+
+        MenuItem mainMenuItem = new MenuItem("Main Menu");
+        mainMenuItem.setOnAction(e -> {
+            controller.stopBackgroundMusic(); // Stop existing music
+            new GUI().start(primaryStage);    // Reload initial GUI
+        });
+
         MenuItem exitItem = new MenuItem("Exit");
         exitItem.setOnAction(e -> onExit.run());
-        fileMenu.getItems().add(exitItem);
+
+        fileMenu.getItems().addAll(mainMenuItem, exitItem);
+
 
         // Settings Menu
         Menu settingsMenu = new Menu("Settings");
-        MenuItem colorItem = new MenuItem("Change Player Colors");
+        MenuItem colorItem = new MenuItem("Player Preferences");
         colorItem.setOnAction(e -> {
-            PlayerSettingsDialog dialog = new PlayerSettingsDialog(playerSettings);
+            PlayerSettingsDialog dialog = new PlayerSettingsDialog(playerSettings, vsComputer);
             dialog.show();
         });
         settingsMenu.getItems().add(colorItem);

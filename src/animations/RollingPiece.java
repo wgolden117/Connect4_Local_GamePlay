@@ -1,9 +1,9 @@
-package logic;
+package animations;
 
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
 
-class RollingPiece {
+public class RollingPiece {
     Circle circle;
     double vx;  // horizontal velocity
     double vy;  // vertical velocity
