@@ -32,9 +32,8 @@ public class GameController {
     private AIPlayer aiPlayer;
     private final Stage stage;
     private BoardRenderer boardRenderer;
-    private MediaPlayer backgroundPlayer;
+    private static MediaPlayer backgroundPlayer;
     private boolean dropSoundEnabled = true;
-    private StackPane rootPane;
     private GameAnimator gameAnimator;
     private ConfettiAnimator confettiAnimator;
     private MovingPieceAnimator movingPieceAnimator;
@@ -50,8 +49,10 @@ public class GameController {
         this.playerSettings = new PlayerSettings();
         // Will be instantiated fresh in loadBoard
 
-        setupBackgroundMusic();  // Prepare the music
-        playBackgroundMusic();   // Start playing it immediately
+        if (backgroundPlayer == null) {  // Prevent overlap
+            setupBackgroundMusic();
+            playBackgroundMusic();
+        }
     }
 
     public void setVsComputer(boolean vsComputer) {
@@ -94,7 +95,7 @@ public class GameController {
         this.aiPlayer = aiPlayer;
     }
 
-    public void setConfettiHandlers(Runnable triggerConfetti) {
+    public void setConfettiHandlers() {
     }
 
     public void setConfettiAnimator(ConfettiAnimator animator) {
@@ -103,6 +104,10 @@ public class GameController {
 
     public void setMovingPieceAnimator(MovingPieceAnimator animator) {
         this.movingPieceAnimator = animator;
+    }
+
+    public static boolean isMusicPlaying() {
+        return backgroundPlayer != null && backgroundPlayer.getStatus() == MediaPlayer.Status.PLAYING;
     }
 
     public void playDropSound() {
@@ -128,17 +133,17 @@ public class GameController {
 
         if (optionalLayout.isEmpty()) {
             if (labelText.equals("Player vs. Computer")) {
-                closeApplication();
+               playBackgroundMusic();
             }
             return;
         }
 
         StackPane layout = optionalLayout.get();
-        this.rootPane = layout;
 
         // New scene with new root
         Scene scene = new Scene(layout);
         stage.setScene(scene);
+        // stage.setResizable(true); // uncomment to be able to adjust game-board size
         stage.setTitle("Connect4");
         stage.setOnCloseRequest(e -> closeApplication());
         stage.show();
@@ -151,7 +156,7 @@ public class GameController {
         });
     }
 
-    public void dropPiece(int col, String labelText, StackPane rootPane) {
+    public void dropPiece(int col, String labelText) {
         if (gameState.isGameOver() || gameLogic.isColumnFull(col)) {
             displayMessage("Column is full. Please choose another column!", false, labelText);
             return;
@@ -217,7 +222,7 @@ public class GameController {
             int aiMove = aiPlayer.getMove();
 
             if (aiMove >= 0 && aiMove < 7) {
-                dropPiece(aiMove, labelText, rootPane); // Let AI drop a piece
+                dropPiece(aiMove, labelText); // Let AI drop a piece
             } else {
                 displayMessage("AI attempted invalid move.", true, labelText);
             }
@@ -241,14 +246,30 @@ public class GameController {
     }
 
     public void playBackgroundMusic() {
-        if (backgroundPlayer != null) {
-            backgroundPlayer.play();
+        if (isMusicPlaying()) return;  // Already playing
+
+        stopBackgroundMusic();  // Just in case something's hanging
+
+        try {
+            URL musicURL = getClass().getResource("/sound/background_music.wav");
+            if (musicURL != null) {
+                Media media = new Media(musicURL.toURI().toString());
+                backgroundPlayer = new MediaPlayer(media);
+                backgroundPlayer.setCycleCount(MediaPlayer.INDEFINITE);
+                backgroundPlayer.play();
+            } else {
+                System.err.println("Background music file not found.");
+            }
+        } catch (Exception e) {
+            System.err.println("Failed to play background music: " + e.getMessage());
         }
     }
 
     public void stopBackgroundMusic() {
         if (backgroundPlayer != null) {
             backgroundPlayer.stop();
+            backgroundPlayer.dispose();
+            backgroundPlayer = null;
         }
     }
 
@@ -294,8 +315,18 @@ public class GameController {
 
             if (closeGame && result.isPresent() && result.get() == ButtonType.YES) {
                 playAgain(labelText);
-            } else if (closeGame && (result.isEmpty() || result.get() == ButtonType.NO)) {
-                closeApplication();
+            } else {
+                if (!isMusicPlaying()) {
+                    stopBackgroundMusic();  // Defensive cleanup
+                    playBackgroundMusic();  // Restart music only if not already playing
+                }
+                Platform.runLater(() -> {
+                    try {
+                        new ui.GUI().start(stage);
+                    } catch (Exception e) {
+                        System.err.printf("Failed to return to main menu: %s%n", e.getMessage());
+                    }
+                });
             }
         });
     }

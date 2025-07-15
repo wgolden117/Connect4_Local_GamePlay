@@ -36,14 +36,13 @@ public class BoardLayout {
     public Optional<StackPane> createBoardLayout(String labelText, GameController controller) {
         StackPane root = new StackPane();
         root.setPrefSize(850, 850);
-        root.setMaxSize(850, 850);
         // --- Rolling pieces container ---
         Pane rollingPieceContainer = new Pane();
         rollingPieceContainer.setPrefHeight(200);
         rollingPieceContainer.setStyle("-fx-background-color: transparent;");
 
         // Set up board renderer
-        BoardRenderer boardRenderer = new BoardRenderer(root, playerSettings);
+        BoardRenderer boardRenderer = new BoardRenderer(root);
         GameAnimator gameAnimator = new GameAnimator(root, boardRenderer.getCircles());
         controller.setGameAnimator(gameAnimator);
 
@@ -130,7 +129,7 @@ public class BoardLayout {
 
         Button[] buttons = new Button[7];
         if (labelText.equals("Player vs. Player")) {
-            setupPlayerVsPlayer(grid, controller, labelText, buttons, root);
+            setupPlayerVsPlayer(grid, controller, labelText, buttons);
         } else {
             ChoiceDialog<String> dialog = new ChoiceDialog<>("Easy", "Easy", "Medium", "Hard");
             dialog.setTitle("AI Difficulty");
@@ -144,7 +143,7 @@ public class BoardLayout {
             AIPlayer aiPlayer = new AIPlayer(gameLogic, aiDifficulty, 2);
             controller.setAIPlayer(aiPlayer);
 
-            setupPlayerVsAI(grid, controller, labelText, buttons, root);
+            setupPlayerVsAI(grid, controller, labelText, buttons);
         }
 
         boardRenderer.setButtons(buttons);
@@ -154,7 +153,7 @@ public class BoardLayout {
         // Ensure color refresh happens after rolling pieces are fully added
         Platform.runLater(movingPieceAnimator::refreshRollingPieceColors);
 
-        controller.setConfettiHandlers(confettiAnimator::startConfettiAnimation);
+        controller.setConfettiHandlers();
 
 
         return Optional.of(root);
@@ -182,11 +181,11 @@ public class BoardLayout {
         updateTurnHighlight(currentPlayer);
     }
 
-    private void setupPlayerVsPlayer(GridPane grid, GameController controller, String labelText, Button[] buttons, StackPane root) {
+    private void setupPlayerVsPlayer(GridPane grid, GameController controller, String labelText, Button[] buttons) {
         for (int col = 0; col < 7; col++) {
             Button button = new Button("Drop");
             int finalCol = col;
-            button.setOnAction(e -> controller.dropPiece(finalCol, labelText, root));
+            button.setOnAction(e -> controller.dropPiece(finalCol, labelText));
             buttons[col] = button;
             grid.add(button, col, 6);
             GridPane.setHalignment(button, HPos.CENTER);
@@ -199,11 +198,11 @@ public class BoardLayout {
         }
     }
 
-    private void setupPlayerVsAI(GridPane grid, GameController controller, String labelText, Button[] buttons, StackPane root) {
+    private void setupPlayerVsAI(GridPane grid, GameController controller, String labelText, Button[] buttons) {
         for (int col = 0; col < 7; col++) {
             Button button = new Button("Drop");
             int finalCol = col;
-            button.setOnAction(e -> controller.dropPiece(finalCol, labelText, root));
+            button.setOnAction(e -> controller.dropPiece(finalCol, labelText));
             buttons[col] = button;
             grid.add(button, col, 6);
             GridPane.setHalignment(button, HPos.CENTER);

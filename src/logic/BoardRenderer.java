@@ -9,7 +9,6 @@ import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.*;
 import javafx.util.Duration;
-import ui.PlayerSettings;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -21,7 +20,7 @@ public class BoardRenderer {
     private final Circle[][] circles = new Circle[rows][cols];
     private Button[] buttons;
 
-    public BoardRenderer(StackPane root, PlayerSettings playerSettings) {
+    public BoardRenderer(StackPane root) {
         this.root = root;
     }
 

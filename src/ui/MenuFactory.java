@@ -54,7 +54,9 @@ public class MenuFactory {
         toggleMusic.setSelected(true);
         toggleMusic.setOnAction(e -> {
             if (toggleMusic.isSelected()) {
-                controller.playBackgroundMusic();
+                if (!GameController.isMusicPlaying()) {
+                    controller.playBackgroundMusic();
+                }
             } else {
                 controller.stopBackgroundMusic();
             }

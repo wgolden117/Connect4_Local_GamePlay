@@ -1,15 +1,22 @@
 package ui;
 
 import javafx.application.Application;
+import javafx.application.Platform;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.layout.*;
-import javafx.scene.text.Font;
-import javafx.scene.text.FontPosture;
-import javafx.scene.text.FontWeight;
 import javafx.stage.Stage;
 import logic.GameController;
+import javafx.scene.image.Image;
+import javafx.scene.layout.Background;
+import javafx.scene.layout.BackgroundImage;
+import javafx.scene.layout.BackgroundPosition;
+import javafx.scene.layout.BackgroundRepeat;
+import javafx.scene.layout.BackgroundSize;
+
+import java.net.URL;
+
 
 public class GUI extends Application {
     private GameController controller;
@@ -26,38 +33,60 @@ public class GUI extends Application {
     public void start(Stage primaryStage) {
         controller = new GameController(primaryStage);
 
-        // Label
-        Label label = new Label("Select Player to play against another player. Select Computer to play against the Computer");
-        label.setFont(Font.font("Courier", FontWeight.BOLD, FontPosture.ITALIC, 15));
-        label.setWrapText(true);
-        label.setAlignment(Pos.CENTER);
 
-        // Buttons
+        // Create and style buttons
         Button playerButton = new Button("Player");
         Button playerComputer = new Button("Computer");
-        HBox buttonBox = new HBox(20, playerButton, playerComputer);
+        Button exitButton = new Button("Exit");
+        exitButton.setOnAction(e -> Platform.exit());
+
+        for (Button button : new Button[]{playerButton, playerComputer, exitButton}) {
+            button.setPrefSize(150, 50);
+            button.setStyle("-fx-font-size: 16px; -fx-font-weight: bold;");
+        }
+
+        // VBox for buttons, centered vertically
+        VBox buttonBox = new VBox(25, playerButton, playerComputer, exitButton);
         buttonBox.setAlignment(Pos.CENTER);
 
-        // Combine into VBox
-        VBox contentBox = new VBox(20, label, buttonBox);
-        contentBox.setAlignment(Pos.CENTER);
+        // StackPane to center VBox inside right panel
+        StackPane rightPane = new StackPane(buttonBox);
+        rightPane.setPrefWidth(450); // Adjust this to match your gray area width
 
-        // Use AnchorPane as the root
-        AnchorPane anchorRoot = new AnchorPane();
+        // Spacer to push content to the right
+        Region leftSpacer = new Region();
+        HBox.setHgrow(leftSpacer, Priority.ALWAYS);
 
-        // Anchor it to top AND bottom to allow vertical centering
-        AnchorPane.setTopAnchor(contentBox, 50.0);         // Top margin
-        AnchorPane.setBottomAnchor(contentBox, 50.0);      // Bottom margin
-        AnchorPane.setLeftAnchor(contentBox, 0.0);
-        AnchorPane.setRightAnchor(contentBox, 0.0);
-        anchorRoot.getChildren().add(contentBox);
+        // HBox to split left (Connect 4 board image) and right (buttons)
+        HBox mainLayout = new HBox(leftSpacer, rightPane);
+        mainLayout.setPrefSize(1250, 750);
+
+        // Set background image
+        URL imageUrl = getClass().getResource("/images/menu_background.png");
+        if (imageUrl == null) {
+            System.err.println("Error: Background image not found!");
+            return; // Or handle gracefully
+        }
+
+        Image backgroundImage = new Image(imageUrl.toExternalForm());
+
+        BackgroundImage bgImage = new BackgroundImage(
+                backgroundImage,
+                BackgroundRepeat.NO_REPEAT,
+                BackgroundRepeat.NO_REPEAT,
+                BackgroundPosition.CENTER,
+                new BackgroundSize(100, 100, true, true, false, true)
+        );
+        mainLayout.setBackground(new Background(bgImage));
 
         // Show scene
-        Scene scene = new Scene(anchorRoot, 700, 300);
+        Scene scene = new Scene(mainLayout, 1250, 750);
         primaryStage.setTitle("Connect4Game");
         primaryStage.setScene(scene);
+        primaryStage.setResizable(false);
         primaryStage.setOnCloseRequest(e -> controller.closeApplication());
         primaryStage.show();
+
 
         // Button actions (defer name dialog to avoid IllegalStateException)
         playerButton.setOnAction(e -> {
@@ -75,6 +104,5 @@ public class GUI extends Application {
                 controller.loadBoard("Player vs. Computer");
             }
         });
-
     }
 }

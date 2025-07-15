@@ -110,7 +110,6 @@ public class MovingPieceAnimator {
         });
     }
 
-
     private void startPhysicsLoop(double radius, double paneWidth, double paneHeight) {
         final double gravity = 0.3;       // Slower descent = longer bounces
         final double friction = 0.995;    // Slower sideways decay = longer motion
