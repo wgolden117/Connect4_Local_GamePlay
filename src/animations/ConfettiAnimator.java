@@ -3,16 +3,15 @@ package animations;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
-
 import javafx.animation.Animation;
+import javafx.animation.Interpolator;
+import javafx.animation.KeyFrame;
 import javafx.animation.ParallelTransition;
 import javafx.animation.PathTransition;
 import javafx.animation.RotateTransition;
 import javafx.animation.Timeline;
-import javafx.animation.KeyFrame;
-import javafx.animation.Interpolator;
-import javafx.scene.layout.StackPane;
 import javafx.scene.layout.Pane;
+import javafx.scene.layout.StackPane;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
 import javafx.scene.shape.MoveTo;
@@ -21,36 +20,50 @@ import javafx.scene.shape.QuadCurveTo;
 import javafx.scene.shape.Rectangle;
 import javafx.util.Duration;
 
+/**
+ * ConfettiAnimator handles visual effects related to confetti animations,
+ * including falling confetti and explosion-style bursts from game pieces.
+ */
 public class ConfettiAnimator {
-
     private final StackPane root;
     private final Pane rollingContainer;
     private final List<RollingPiece> rollingPieces;
     private final List<Animation> activeConfettiAnimations = new ArrayList<>();
     private final Random random = new Random();
-    private final Pane confettiPane;
-    private Timeline confettiTimeline;
 
+    /**
+     * Constructs a ConfettiAnimator.
+     *
+     * @param root              The root StackPane for the scene.
+     * @param rollingContainer  The Pane containing rolling pieces.
+     * @param rollingPieces     The list of animated rolling game pieces.
+     */
     public ConfettiAnimator(StackPane root, Pane rollingContainer, List<RollingPiece> rollingPieces) {
         this.root = root;
-        this.confettiPane = rollingContainer;
         this.rollingContainer = rollingContainer;
         this.rollingPieces = rollingPieces;
     }
 
+    /**
+     * Starts an ongoing confetti animation by generating falling confetti pieces.
+     */
     public void startConfettiAnimation() {
         Timeline timeline = new Timeline(new KeyFrame(Duration.millis(250), e -> {
             for (int i = 0; i < 5; i++) {
                 double width = 4 + random.nextDouble() * 4;
                 double height = 8 + random.nextDouble() * 4;
-                Rectangle confetti = new Rectangle(width, height, Color.color(random.nextDouble(), random.nextDouble(), random.nextDouble()));
+                Rectangle confetti = new Rectangle(width, height, Color.color(
+                        random.nextDouble(), random.nextDouble(), random.nextDouble()));
+
                 confetti.setTranslateX(random.nextDouble() * root.getWidth() - root.getWidth() / 2);
                 confetti.setTranslateY(-root.getHeight() / 2 - 20 - random.nextDouble() * 30);
 
                 root.getChildren().add(confetti);
 
+                // Path for falling effect
                 Path path = new Path();
                 path.getElements().add(new MoveTo(confetti.getTranslateX(), confetti.getTranslateY()));
+
                 double controlX = confetti.getTranslateX() + (random.nextDouble() - 0.5) * 100;
                 double controlY = root.getHeight() / 2 + random.nextDouble() * 100;
                 double endX = confetti.getTranslateX() + (random.nextDouble() - 0.5) * 100;
@@ -78,6 +91,9 @@ public class ConfettiAnimator {
         activeConfettiAnimations.add(timeline);
     }
 
+    /**
+     * Creates a burst of confetti from each rolling piece and removes them from the scene.
+     */
     public void explodeRollingPiecesIntoConfetti() {
         for (RollingPiece rp : rollingPieces) {
             Circle circle = rp.circle;
@@ -93,9 +109,8 @@ public class ConfettiAnimator {
 
                 root.getChildren().add(confetti);
 
-                Path path = new Path();
-                path.getElements().add(new MoveTo(startX, startY));
-
+                // Create explosion trajectory
+                Path path = new Path(new MoveTo(startX, startY));
                 double angle = Math.toRadians(random.nextDouble() * 360);
                 double radius = 80 + random.nextDouble() * 40;
                 double midX = startX + Math.cos(angle) * radius;
@@ -110,6 +125,7 @@ public class ConfettiAnimator {
 
                 double fallX = midX + (random.nextDouble() - 0.5) * 60;
                 double fallY = root.getHeight() + 100;
+
                 path.getElements().add(new QuadCurveTo(
                         (midX + fallX) / 2,
                         midY + 100,
@@ -133,10 +149,12 @@ public class ConfettiAnimator {
         rollingPieces.clear();
     }
 
+    /**
+     * Stops all confetti animations and clears the confetti pane.
+     */
     public void stopConfettiAnimation() {
-        if (confettiTimeline != null) {
-            confettiTimeline.stop();
-        }
-        confettiPane.getChildren().clear();
+        activeConfettiAnimations.forEach(Animation::stop);
+        activeConfettiAnimations.clear();
+        rollingContainer.getChildren().clear();
     }
 }

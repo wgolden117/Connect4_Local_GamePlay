@@ -12,17 +12,34 @@ import javafx.scene.layout.StackPane;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
 import javafx.util.Duration;
-
+/**
+ * GameAnimator is responsible for animating Connect 4 game piece drops.
+ * It creates a visual effect of a game piece falling from the top of the screen
+ * to its destination on the game board.
+ */
 public class GameAnimator {
     private final StackPane root;
     private final Circle[][] circles;
-
+    /**
+     * Constructs a GameAnimator instance.
+     *
+     * @param root    The root StackPane that contains all game visuals.
+     * @param circles A 2D array representing the visual pieces on the game board.
+     * @throws IllegalArgumentException if the root pane is null.
+     */
     public GameAnimator(StackPane root, Circle[][] circles) {
         if (root == null) throw new IllegalArgumentException("Root StackPane cannot be null");
         this.root = root;
         this.circles = circles;
     }
-
+    /**
+     * Animates a falling piece into the specified board location.
+     *
+     * @param col      The column index of the board where the piece will land.
+     * @param row      The row index of the board where the piece will land.
+     * @param color    The color of the falling game piece.
+     * @param onFinish A callback to execute after the animation completes.
+     */
     public void animateDrop(int col, int row, Color color, Runnable onFinish) {
         Circle target = circles[row][col];
 

@@ -1,31 +1,100 @@
 package animations;
 
-import javafx.animation.*;
+import javafx.animation.Animation;
+import javafx.animation.AnimationTimer;
+import javafx.animation.Interpolator;
+import javafx.animation.KeyFrame;
+import javafx.animation.KeyValue;
+import javafx.animation.SequentialTransition;
+import javafx.animation.Timeline;
 import javafx.application.Platform;
 import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
-import javafx.scene.shape.*;
-
-import java.util.ArrayList;
-import java.util.List;
+import javafx.scene.shape.Circle;
 import javafx.util.Duration;
 import ui.PlayerSettings;
+import java.util.ArrayList;
+import java.util.List;
 
+/**
+ * Handles the animation and physics simulation of rolling pieces on the main menu screen.
+ * Includes bounce interactions on click and dynamic motion.
+ */
 public class MovingPieceAnimator {
-
     private final Pane rollingContainer;
     private final List<RollingPiece> rollingPieces = new ArrayList<>();
     private final PlayerSettings playerSettings;
 
+    /**
+     * Constructs a MovingPieceAnimator.
+     *
+     * @param rollingContainer The Pane that contains and renders rolling pieces.
+     * @param playerSettings   PlayerSettings used for determining piece colors.
+     */
     public MovingPieceAnimator(Pane rollingContainer, PlayerSettings playerSettings) {
         this.rollingContainer = rollingContainer;
         this.playerSettings = playerSettings;
     }
 
+    /**
+     * Returns the list of current rolling pieces.
+     *
+     * @return List of RollingPiece objects.
+     */
     public List<RollingPiece> getRollingPieces() {
         return rollingPieces;
     }
 
+
+    /**
+     * Starts the rolling animation by generating and dropping pieces into the container.
+     * Each piece is assigned to a player color and is clickable for bounce effects.
+     */
+    public void startRollingPieceAnimation() {
+        rollingContainer.getChildren().clear();
+        rollingPieces.clear();
+
+        int totalPieces = 24;
+        double radius = 10
+                ;
+
+        Platform.runLater(() -> {
+            double paneWidth = rollingContainer.getWidth();
+            double paneHeight = rollingContainer.getHeight();
+
+            for (int i = 0; i < totalPieces; i++) {
+                boolean isPlayerOne = i < 12;
+                Color color = isPlayerOne ? playerSettings.getPlayerOneColor() : playerSettings.getPlayerTwoColor();
+
+                Circle piece = new Circle(radius, color);
+                piece.setStroke(Color.BLACK);
+                piece.setStrokeWidth(4);
+
+                double x = Math.random() * (paneWidth - 2 * radius);
+                double y = -200 - Math.random() * 100; // Spawn well above visible pane
+
+                piece.setLayoutX(x);
+                piece.setLayoutY(y);
+
+                piece.setOnMouseClicked(ev -> bounceRollingPiece(piece));
+
+                rollingContainer.getChildren().add(piece);
+                RollingPiece rp = new RollingPiece(piece, (Math.random() - 0.5) * 2, 0);
+                rollingPieces.add(rp);
+            }
+
+            startPhysicsLoop(radius, paneWidth, paneHeight);
+
+            // Refresh colors now that pieces are created
+            refreshRollingPieceColors();
+        });
+    }
+
+    /**
+     * Bounces a rolling piece upward and forward in a decreasing bounce sequence.
+     *
+     * @param piece The Circle to animate.
+     */
     private void bounceRollingPiece(Circle piece) {
         double startX = piece.getLayoutX();
         double startY = piece.getLayoutY();
@@ -70,46 +139,10 @@ public class MovingPieceAnimator {
         fullBounce.play();
     }
 
-    public void startRollingPieceAnimation() {
-        rollingContainer.getChildren().clear();
-        rollingPieces.clear();
-
-        int totalPieces = 24;
-        double radius = 10
-                ;
-
-        Platform.runLater(() -> {
-            double paneWidth = rollingContainer.getWidth();
-            double paneHeight = rollingContainer.getHeight();
-
-            for (int i = 0; i < totalPieces; i++) {
-                boolean isPlayerOne = i < 12;
-                Color color = isPlayerOne ? playerSettings.getPlayerOneColor() : playerSettings.getPlayerTwoColor();
-
-                Circle piece = new Circle(radius, color);
-                piece.setStroke(Color.BLACK);
-                piece.setStrokeWidth(4);
-
-                double x = Math.random() * (paneWidth - 2 * radius);
-                double y = -200 - Math.random() * 100; // Spawn well above visible pane
-
-                piece.setLayoutX(x);
-                piece.setLayoutY(y);
-
-                piece.setOnMouseClicked(ev -> bounceRollingPiece(piece));
-
-                rollingContainer.getChildren().add(piece);
-                RollingPiece rp = new RollingPiece(piece, (Math.random() - 0.5) * 2, 0);
-                rollingPieces.add(rp);
-            }
-
-            startPhysicsLoop(radius, paneWidth, paneHeight);
-
-            // Refresh colors now that pieces are created
-            refreshRollingPieceColors();
-        });
-    }
-
+    /**
+     * Starts a physics loop that simulates gravity, friction, wall collision,
+     * and simple 1D elastic collisions between pieces.
+     */
     private void startPhysicsLoop(double radius, double paneWidth, double paneHeight) {
         final double gravity = 0.3;       // Slower descent = longer bounces
         final double friction = 0.995;    // Slower sideways decay = longer motion
@@ -164,6 +197,11 @@ public class MovingPieceAnimator {
         };
         timer.start();
     }
+
+    /**
+     * Refreshes the color of all rolling pieces based on the current player settings.
+     * Useful when players update their piece colors in the settings menu.
+     */
     public void refreshRollingPieceColors() {
         Platform.runLater(() -> {
             for (int i = 0; i < rollingPieces.size(); i++) {
