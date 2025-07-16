@@ -1,4 +1,6 @@
 package core;
+
+import logic.GameLogic;
 import java.util.InputMismatchException;
 import java.util.Random;
 import java.util.Scanner;
@@ -17,14 +19,13 @@ public class AgainstComputerLogic {
     String magenta = "\u001B[35m";
     String red = "\u001B[31m";
     String yellow = "\u001B[33m";
-    private static int count_playerX = 21;
-    private static int count_computer = 21;
     private static final int rows = 6;
     private static final int columns = 7;
     private static final char emptySpace = ' ';
     private static final char playerX = 'X';
     private static final char playerComputer = 'O';
     private final char[][] gameBoard;
+    private final GameLogic gameLogic;
 
     /**
      *
@@ -32,7 +33,7 @@ public class AgainstComputerLogic {
      *
      */
     public AgainstComputerLogic(){
-
+        gameLogic = new GameLogic();
         gameBoard  = new char[rows][columns];
 
         for (int i = 0; i < rows; i++){
@@ -41,7 +42,6 @@ public class AgainstComputerLogic {
             }
         }
     }
-
     /**
      *
      * method to print the gameBoard
@@ -55,7 +55,6 @@ public class AgainstComputerLogic {
             System.out.println();
         }
     }
-
     /**
      *
      * checks to see if the move is valid, and if it is
@@ -67,7 +66,6 @@ public class AgainstComputerLogic {
      * @return boolean
      *
      */
-
     public boolean addPiece(int column, char piece) throws IllegalArgumentException {
 
         if (column < 0 || column >= columns) {
@@ -93,7 +91,6 @@ public class AgainstComputerLogic {
      * @return boolean
      *
      */
-
     public boolean addRandomPiece(char piece) {
         try {
             // Introduce a 1-second delay before the computer makes its move
@@ -119,51 +116,6 @@ public class AgainstComputerLogic {
         return false;
     }
 
-
-    /**
-     *
-     * Checks if there are 4 consecutive X's or O's in a row
-     * Horizontally, vertically, and diagonally
-     *
-     * @param piece is the current piece either X or O
-     *              if any of the conditions are true, returns true otherwise returns false.
-     * @return boolean
-     *
-     */
-    public boolean checkWinState(char piece) {
-
-        //check for horizontal win
-        for (int i = 0; i < rows; i++) {
-            for (int j = 0; j <= columns - 4; j++) {
-                if (gameBoard[i][j] == piece && gameBoard[i][j + 1] == piece && gameBoard[i][j + 2] == piece && gameBoard[i][j + 3] == piece) {
-                    return true;
-                }
-            }
-        }
-        //check for vertical win
-        for (int j = 0; j < columns; j++) {
-            for (int i = 0; i <= rows - 4; i++) {
-                if (gameBoard[i][j] == piece && gameBoard[i + 1][j] == piece && gameBoard[i + 2][j] == piece && gameBoard[i + 3][j] == piece) {
-                    return true;
-                }
-            }
-        }
-        //check for diagonal win
-        for (int i = 0; i <= rows - 4; i++) {
-            for (int j = 0; j <= columns - 4; j++) {
-                // check diagonals from bottom to top right
-                if (gameBoard[i][j + 3] == piece && gameBoard[i + 1][j + 2] == piece && gameBoard[i + 2][j + 1] == piece && gameBoard[i + 3][j] == piece) {
-                    return true;
-                }
-                // check diagonals from top to bottom right
-                if (gameBoard[i][j] == piece && gameBoard[i + 1][j + 1] == piece && gameBoard[i + 2][j + 2] == piece && gameBoard[i + 3][j + 3] == piece) {
-                    return true;
-                }
-            }
-        }
-        return false;
-    }
-
     /**
      *
      * playGame uses a while loop to play Connect4 with 2 players
@@ -171,7 +123,6 @@ public class AgainstComputerLogic {
      * if there is a winner the while loop is broken and a winner is declared
      *
      */
-
     public void playGame_againstComputer() {
 
         Scanner scanner = new Scanner(System.in);
@@ -181,18 +132,17 @@ public class AgainstComputerLogic {
             AgainstComputerLogic game = new AgainstComputerLogic(); // Reset the game state
             boolean playerXTurn = true;  // start with playerX
             boolean playConnect4 = true; // begin running the game
-            count_playerX = 21; // Reset player X's move count
-            count_computer = 21; // Reset computer's move count
+            int count_playerX = 21; // Reset player X's move count
+            int count_computer = 21; // Reset computer's move count
 
             while (playConnect4) { // while the game is running...
 
                 game.printBoard();
 
+                System.out.println();
                 if (playerXTurn) {
-                    System.out.println();
                     System.out.println(magenta + "It is your turn. Choose a column number from 1-7. Moves left: " + count_playerX + reset);
                 } else {
-                    System.out.println();
                     System.out.println(blue + "Computer's turn. Moves left: " + count_computer + reset);
                 }
 
@@ -205,7 +155,7 @@ public class AgainstComputerLogic {
                         System.out.println();
                         if (game.addPiece(column, playerX)) {
                             count_playerX--;
-                            if (game.checkWinState(playerX)) {
+                            if (gameLogic.checkWinState(playerX)) {
                                 game.printBoard();
                                 System.out.println();
                                 System.out.println(magenta + "Player X won the game!" + reset);
@@ -216,7 +166,7 @@ public class AgainstComputerLogic {
                     } else {
                         if (game.addRandomPiece(playerComputer)) {
                             count_computer--;
-                            if (game.checkWinState(playerComputer)) {
+                            if (gameLogic.checkWinState(playerComputer)) {
                                 game.printBoard();
                                 System.out.println();
                                 System.out.println(blue + "Computer won the game!" + reset);

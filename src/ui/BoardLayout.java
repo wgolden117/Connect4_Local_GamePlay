@@ -153,9 +153,6 @@ public class BoardLayout {
         // Ensure color refresh happens after rolling pieces are fully added
         Platform.runLater(movingPieceAnimator::refreshRollingPieceColors);
 
-        controller.setConfettiHandlers();
-
-
         return Optional.of(root);
     }
 

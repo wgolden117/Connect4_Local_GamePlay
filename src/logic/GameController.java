@@ -17,29 +17,44 @@ import javafx.stage.Stage;
 import javafx.util.Duration;
 import ui.BoardLayout;
 import ui.PlayerSettings;
-
 import java.net.URL;
 import java.util.List;
 import java.util.Optional;
 
 /**
  * GameController acts as the mediator between the GUI, game logic, AI, and board rendering.
+ * It manages user and AI moves, updates the board view, handles sound/music, confetti, and restarts.
+ * Supports both Player vs. Player and Player vs. Computer game modes.
+ *
+ * @author Weronika
+ * @version 2.0
  */
 public class GameController {
+    // Core components
     private final GameLogic gameLogic;
     private final GameStateManager gameState;
     private final PlayerSettings playerSettings;
     private AIPlayer aiPlayer;
+
+    // JavaFX stage and rendering
     private final Stage stage;
     private BoardRenderer boardRenderer;
+    private BoardLayout boardLayout;
+
+    // Animators and media
     private static MediaPlayer backgroundPlayer;
-    private boolean dropSoundEnabled = true;
     private GameAnimator gameAnimator;
     private ConfettiAnimator confettiAnimator;
     private MovingPieceAnimator movingPieceAnimator;
+    private boolean dropSoundEnabled = true;
     private boolean vsComputer;
-    private BoardLayout boardLayout;
 
+    /**
+     * Constructor to initialize the controller with the primary stage and core game components.
+     * Also initializes background music.
+     *
+     * @param primaryStage the main JavaFX stage
+     */
     public GameController(Stage primaryStage) {
         this.stage = primaryStage;
         stage.setMinWidth(850);
@@ -55,61 +70,76 @@ public class GameController {
         }
     }
 
+    /** Sets whether the game mode is versus computer. */
     public void setVsComputer(boolean vsComputer) {
         this.vsComputer = vsComputer;
     }
 
+    /** @return true if game mode is Player vs. Computer. */
     public boolean isVsComputer() {
         return vsComputer;
     }
 
+    /** @return the current JavaFX Stage object. */
     public Stage getStage() {
         return stage;
     }
 
+    /** @return the rolling piece animator for the main menu screen. */
     public MovingPieceAnimator getMovingPieceAnimator() {
         return movingPieceAnimator;
     }
 
+    /** @return the player settings object, containing names and colors. */
     public PlayerSettings getPlayerSettings() {
         return playerSettings;
     }
 
+    /** @return the game state manager which tracks player turns and win state. */
     public GameStateManager getGameStateManager() {
         return gameState;
     }
 
+    /**
+     * Enables or disables drop sound effects.
+     *
+     * @param enabled true to enable sounds, false to mute
+     */
     public void setDropSoundEnabled(boolean enabled) {
         this.dropSoundEnabled = enabled;
     }
 
+    /** Sets the board renderer responsible for updating the grid view. */
     public void setBoardRenderer(BoardRenderer boardRenderer) {
         this.boardRenderer = boardRenderer;
     }
 
+    /** Sets the animator that visually drops game pieces. */
     public void setGameAnimator(GameAnimator animator) {
         this.gameAnimator = animator;
     }
 
+    /** Sets the AI player logic for Player vs. Computer mode. */
     public void setAIPlayer(AIPlayer aiPlayer) {
         this.aiPlayer = aiPlayer;
     }
 
-    public void setConfettiHandlers() {
-    }
-
+    /** Sets the confetti animator for post-win celebration effects. */
     public void setConfettiAnimator(ConfettiAnimator animator) {
         this.confettiAnimator = animator;
     }
 
+    /** Sets the animator for bouncing pieces on the main menu. */
     public void setMovingPieceAnimator(MovingPieceAnimator animator) {
         this.movingPieceAnimator = animator;
     }
 
+    /** @return true if background music is currently playing. */
     public static boolean isMusicPlaying() {
         return backgroundPlayer != null && backgroundPlayer.getStatus() == MediaPlayer.Status.PLAYING;
     }
 
+    /** Plays the sound for dropping a piece, if sound is enabled. */
     public void playDropSound() {
         if (!dropSoundEnabled) return;
 
@@ -122,6 +152,11 @@ public class GameController {
         }
     }
 
+    /**
+     * Loads a new game board scene into the stage with appropriate layout and handlers.
+     *
+     * @param labelText The mode label ("Player vs. Player" or "Player vs. Computer")
+     */
     public void loadBoard(String labelText) {
         if (confettiAnimator != null) {
             confettiAnimator.stopConfettiAnimation();
@@ -156,6 +191,13 @@ public class GameController {
         });
     }
 
+    /**
+     * Handles the logic of dropping a piece into a column. Includes animations,
+     * sound, move validation, win/draw detection, and AI turn logic.
+     *
+     * @param col       the column to drop into
+     * @param labelText mode label for display
+     */
     public void dropPiece(int col, String labelText) {
         if (gameState.isGameOver() || gameLogic.isColumnFull(col)) {
             displayMessage("Column is full. Please choose another column!", false, labelText);
@@ -183,7 +225,6 @@ public class GameController {
                 boardRenderer.setButtonsDisabled(false);
                 return;
             }
-
             boardRenderer.setPiece(row, col, currentColor);
             gameState.incrementMoveCount();
 
@@ -205,7 +246,6 @@ public class GameController {
                 if (boardLayout != null) {
                     boardLayout.refreshTurnHighlight(gameState.getCurrentPlayer());
                 }
-
                 // Let AI play automatically if it's their turn
                 if (labelText.equals("Player vs. Computer") && gameState.getCurrentPlayer() == 2) {
                     triggerAIMove(labelText);  // AI goes automatically
@@ -216,6 +256,11 @@ public class GameController {
         });
     }
 
+    /**
+     * Triggers AI move after a small delay.
+     *
+     * @param labelText game mode label
+     */
     private void triggerAIMove(String labelText) {
         PauseTransition delay = new PauseTransition(Duration.seconds(0.5));
         delay.setOnFinished(event -> {
@@ -230,6 +275,7 @@ public class GameController {
         delay.play();
     }
 
+    /** Loads the background music from a WAV file and prepares it to loop. */
     public void setupBackgroundMusic() {
         try {
             URL musicURL = getClass().getResource("/sound/background_music.wav");
@@ -245,6 +291,7 @@ public class GameController {
         }
     }
 
+    /** Starts playing the background music if not already playing. */
     public void playBackgroundMusic() {
         if (isMusicPlaying()) return;  // Already playing
 
@@ -265,6 +312,7 @@ public class GameController {
         }
     }
 
+    /** Stops the background music if it is currently playing. */
     public void stopBackgroundMusic() {
         if (backgroundPlayer != null) {
             backgroundPlayer.stop();
@@ -273,6 +321,11 @@ public class GameController {
         }
     }
 
+    /**
+     * Resets the game state and reloads the board to start a new game.
+     *
+     * @param labelText the mode label to reload
+     */
     public void playAgain(String labelText) {
         gameState.reset();
         gameLogic.resetBoard();
@@ -280,11 +333,11 @@ public class GameController {
     }
 
     /**
-     * Helper method to display a message then close the game
+     * Displays an information or confirmation dialog. Offers replay if the game has ended.
      *
-     * @param message    message
-     * @param closeGame, closes the game if true
-     * @param labelText  labelText
+     * @param message    the message to show
+     * @param closeGame  if true, prompts to restart the game
+     * @param labelText  current game mode label
      */
     private void displayMessage(String message, boolean closeGame, String labelText) {
         Platform.runLater(() -> {
@@ -330,9 +383,8 @@ public class GameController {
             }
         });
     }
-    /**
-     * method to close GUI and client
-     */
+
+    /** Closes the active game window and exits the application. */
     public void closeApplication() {
         Optional<Stage> openStage = Stage.getWindows()
                 .stream()

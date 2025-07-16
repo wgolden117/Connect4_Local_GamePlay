@@ -1,4 +1,6 @@
 package core;
+import logic.GameLogic;
+
 import java.util.InputMismatchException;
 import java.util.Scanner;
 
@@ -9,7 +11,6 @@ import java.util.Scanner;
  * @version 2.0
  *
  */
-
 public class LogicForConsole {
 
     String reset = "\u001B[0m";
@@ -17,22 +18,20 @@ public class LogicForConsole {
     String magenta = "\u001B[35m";
     String red = "\u001B[31m";
     String yellow = "\u001B[33m";
-    private static int count_playerX = 21;
-    private static int count_playerO = 21;
     private static final int rows = 6;
     private static final int columns = 7;
     private static final char emptySpace = ' ';
     private static final char playerX = 'X';
     private static final char playerO = 'O';
     private final char[][] gameBoard;
-
+    private final GameLogic gameLogic;
     /**
      *
      * constructor to initialize the gameBoard
      *
      */
     public LogicForConsole() {
-
+        gameLogic = new GameLogic();
         gameBoard  = new char[rows][columns];
 
         for (int i = 0; i < rows; i++){
@@ -41,7 +40,6 @@ public class LogicForConsole {
             }
         }
     }
-
     /**
      *
      * method to print the gameBoard
@@ -55,7 +53,6 @@ public class LogicForConsole {
             System.out.println();
         }
     }
-
     /**
      *
      * checks to see if the move is valid, and if it is
@@ -79,50 +76,6 @@ public class LogicForConsole {
         }
         throw new IllegalArgumentException(red + "No more free spaces: choose another column." + reset);
     }
-
-    /**
-     *
-     * Checks if there are 4 consecutive X's or O's in a row
-     * Horizontally, vertically, and diagonally
-     * @return boolean
-     * @param piece is the current piece either X or O
-     * if any of the conditions are true, returns true otherwise returns false.
-     *
-     */
-    public boolean checkWinState(char piece){
-
-        //check for horizontal win
-        for(int i = 0; i < rows; i++){
-            for(int j = 0; j <= columns-4;j++){
-                if(gameBoard[i][j] == piece && gameBoard[i][j+1] == piece && gameBoard[i][j+2] == piece && gameBoard[i][j+3] == piece) {
-                    return true;
-                }
-            }
-        }
-        //check for vertical win
-        for (int j = 0; j < columns; j++){
-            for(int i = 0; i <= rows-4; i++){
-                if(gameBoard[i][j] == piece && gameBoard[i+1][j] == piece && gameBoard[i+2][j] == piece && gameBoard[i+3][j] == piece) {
-                    return true;
-                }
-            }
-        }
-        //check for diagonal win
-        for(int i = 0; i <= rows-4; i++){
-            for(int j = 0; j <= columns-4; j++){
-                // check diagonals from bottom to top right
-                if(gameBoard[i][j+3] == piece && gameBoard[i+1][j+2] == piece && gameBoard[i+2][j+1] == piece && gameBoard[i+3][j] == piece){
-                    return true;
-                }
-                // check diagonals from top to bottom right
-                if (gameBoard[i][j] == piece && gameBoard[i+1][j+1] == piece && gameBoard[i+2][j+2] == piece && gameBoard[i+3][j+3] == piece){
-                    return true;
-                }
-            }
-        }
-        return false;
-    }
-
     /**
      *
      * playGame uses a while loop to play Connect4 with 2 players
@@ -139,31 +92,30 @@ public class LogicForConsole {
 
             boolean playerXTurn = true;  // start with playerX
             boolean playConnect4 = true; // begin running the game
-            count_playerX = 21; // Reset player X moves
-            count_playerO = 21; // Reset player O moves
+            int count_playerX = 21; // Reset player X moves
+            int count_playerO = 21; // Reset player O moves
 
             while (playConnect4) { // while the game is running...
 
                 game.printBoard();
 
+                System.out.println();
                 if (playerXTurn) {
-                    System.out.println();
                     System.out.println(magenta + "PlayerX-your turn. Choose a column number from 1-7. Moves left: " + count_playerX + reset);
                 } else {
-                    System.out.println();
                     System.out.println(blue + "PlayerO-your turn. Choose a column number from 1-7. Moves left: " + count_playerO + reset);
                 }
 
                 try {
                     // players take turns until the game is over
+                    System.out.print("Enter column number (1-" + columns + "): ");
+                    int column = scanner.nextInt() - 1;
+                    System.out.println();
                     if (playerXTurn) {
                         // ask scanner for user input
-                        System.out.print("Enter column number (1-" + columns + "): ");
-                        int column = scanner.nextInt() - 1;
-                        System.out.println();
                         if (game.addPiece(column, playerX)) {
                             count_playerX--;
-                            if (game.checkWinState(playerX)) {
+                            if (gameLogic.checkWinState(playerX)) {
                                 game.printBoard();
                                 System.out.println();
                                 System.out.println(magenta + "Player X won the game!" + reset);
@@ -173,12 +125,9 @@ public class LogicForConsole {
                         }
                     } else {
                         // ask scanner for user input
-                        System.out.print("Enter column number (1-" + columns + "): ");
-                        int column = scanner.nextInt() - 1;
-                        System.out.println();
                         if (game.addPiece(column, playerO)) {
                             count_playerO--;
-                            if (game.checkWinState(playerO)) {
+                            if (gameLogic.checkWinState(playerO)) {
                                 game.printBoard();
                                 System.out.println();
                                 System.out.println(blue + "Player O won the game!" + reset);
@@ -204,7 +153,6 @@ public class LogicForConsole {
                     scanner.nextLine(); // Clear the scanner buffer
                 }
             }
-
             // Ask if the player wants to play again
             String answer;
             while (true) {

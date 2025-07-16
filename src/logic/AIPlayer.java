@@ -2,6 +2,16 @@ package logic;
 
 import java.util.Random;
 
+/**
+ * The AIPlayer class represents an artificial intelligence opponent
+ * for the Connect 4 game. It supports three difficulty levels:
+ * Easy (random move), Medium (blocking strategy), and Hard (minimax with alpha-beta pruning).
+ * This AI interacts with a shared GameLogic instance and uses its board
+ * for simulations and evaluations.
+ *
+ * @author Weronika
+ * @version 2.0
+ */
 public class AIPlayer {
     private final GameLogic gameLogic;
     private final int aiPlayerId;
@@ -9,6 +19,13 @@ public class AIPlayer {
     private final String difficulty;
     private final int cols = 7;
 
+    /**
+     * Constructs an AI player with specified difficulty and player ID.
+     *
+     * @param gameLogic the shared GameLogic instance to simulate moves on
+     * @param difficulty the AI difficulty level ("Easy", "Medium", "Hard")
+     * @param aiPlayerId the numeric ID representing the AI player (1 or 2)
+     */
     public AIPlayer(GameLogic gameLogic, String difficulty, int aiPlayerId) {
         this.gameLogic = gameLogic;
         this.difficulty = difficulty;
@@ -17,7 +34,9 @@ public class AIPlayer {
     }
 
     /**
-     * Main method for the GUI to call — returns AI's chosen move.
+     * Returns the AI's chosen column based on its difficulty level.
+     *
+     * @return the column index (0-6) the AI wants to drop its piece in
      */
     public int getMove() {
         return switch (difficulty) {
@@ -27,6 +46,11 @@ public class AIPlayer {
         };
     }
 
+    /**
+     * Returns a valid random column to play in (used in Easy mode).
+     *
+     * @return a column index between 0 and 6
+     */
     private int getRandomMove() {
         Random random = new Random();
         int col;
@@ -36,6 +60,12 @@ public class AIPlayer {
         return col;
     }
 
+    /**
+     * Checks each column to see if the opponent can win on their next move,
+     * and blocks that column if found. Otherwise, returns a random move.
+     *
+     * @return the chosen column index
+     */
     private int getBlockingMoveOrRandom() {
         int[][] board = gameLogic.getBoard();
 
@@ -56,6 +86,11 @@ public class AIPlayer {
         return getRandomMove();
     }
 
+    /**
+     * Returns the best column for the AI to move using minimax with alpha-beta pruning.
+     *
+     * @return the best evaluated column
+     */
     private int getBestMoveMinimax() {
         int bestScore = Integer.MIN_VALUE;
         int bestCol = -1;
@@ -81,6 +116,15 @@ public class AIPlayer {
         return bestCol != -1 ? bestCol : getRandomMove();
     }
 
+    /**
+     * Minimax algorithm with alpha-beta pruning to evaluate best move.
+     *
+     * @param depth current depth in search tree
+     * @param isMaximizing true if maximizing player
+     * @param alpha alpha bound for pruning
+     * @param beta beta bound for pruning
+     * @return evaluation score for current board
+     */
     private int minimax(int depth, boolean isMaximizing, int alpha, int beta) {
         int[][] board = gameLogic.getBoard();
 
@@ -123,6 +167,14 @@ public class AIPlayer {
             return minEval;
         }
     }
+
+    /**
+     * Checks if the given player has won on the provided board.
+     *
+     * @param board the game board to check
+     * @param playerId the player to evaluate (1 or 2)
+     * @return true if the player has 4 in a row, false otherwise
+     */
     private boolean hasWon(int[][] board, int playerId) {
         // Horizontal
         for (int row = 0; row < 6; row++) {
@@ -135,7 +187,6 @@ public class AIPlayer {
                 }
             }
         }
-
         // Vertical
         for (int row = 0; row < 3; row++) {
             for (int col = 0; col < 7; col++) {
@@ -147,7 +198,6 @@ public class AIPlayer {
                 }
             }
         }
-
         // Positive diagonal
         for (int row = 0; row < 3; row++) {
             for (int col = 0; col < 4; col++) {
@@ -159,7 +209,6 @@ public class AIPlayer {
                 }
             }
         }
-
         // Negative diagonal
         for (int row = 3; row < 6; row++) {
             for (int col = 0; col < 4; col++) {
@@ -175,6 +224,12 @@ public class AIPlayer {
         return false;
     }
 
+    /**
+     * Evaluates the current state of the board to produce a numeric score.
+     *
+     * @param board the board to evaluate
+     * @return score for the AI (positive = favorable, negative = unfavorable)
+     */
     private int evaluateBoard(int[][] board) {
         int score = 0;
 
@@ -182,7 +237,6 @@ public class AIPlayer {
         for (int row = 0; row < 6; row++) {
             if (board[row][3] == aiPlayerId) score += 6;
         }
-
         // Evaluate all 4-piece "windows"
         for (int row = 0; row < 6; row++) {
             for (int col = 0; col < 7 - 3; col++) {
@@ -190,7 +244,6 @@ public class AIPlayer {
                 score += evaluateWindow(window);
             }
         }
-
         // Vertical
         for (int row = 0; row < 6 - 3; row++) {
             for (int col = 0; col < 7; col++) {
@@ -198,7 +251,6 @@ public class AIPlayer {
                 score += evaluateWindow(window);
             }
         }
-
         // Positive diagonal
         for (int row = 0; row < 6 - 3; row++) {
             for (int col = 0; col < 7 - 3; col++) {
@@ -206,7 +258,6 @@ public class AIPlayer {
                 score += evaluateWindow(window);
             }
         }
-
         // Negative diagonal
         for (int row = 3; row < 6; row++) {
             for (int col = 0; col < 7 - 3; col++) {
@@ -214,10 +265,15 @@ public class AIPlayer {
                 score += evaluateWindow(window);
             }
         }
-
         return score;
     }
 
+    /**
+     * Evaluates a set of four positions (window) and scores it.
+     *
+     * @param window an array of 4 integers representing a potential win
+     * @return score based on number of AI or opponent pieces
+     */
     private int evaluateWindow(int[] window) {
         int score = 0;
         int aiCount = 0;

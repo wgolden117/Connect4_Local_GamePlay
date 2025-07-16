@@ -3,28 +3,61 @@ package logic;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * GameLogic manages the core Connect 4 board state and win-checking logic.
+ * It tracks moves, available positions, and checks for winning conditions.
+ * Player values are assumed to be 1 and 2. Empty slots are represented by 0.
+ *
+ * @author Weronika
+ * @version 2.0
+ */
 public class GameLogic {
     private final int rows = 6;
     private final int cols = 7;
     private final int[][] board;
-    private List<int[]> winningPositions = new ArrayList<>();
+    private final List<int[]> winningPositions = new ArrayList<>();
 
+    /**
+     * Constructs a new GameLogic instance with an empty 6x7 board.
+     */
     public GameLogic() {
         board = new int[rows][cols];
     }
 
+    /**
+     * Returns the current game board.
+     *
+     * @return a 2D array representing the board state
+     */
     public int[][] getBoard() {
         return board;
     }
 
+    /**
+     * Returns a list of positions that form the most recent winning line.
+     *
+     * @return a list of row/column coordinate pairs
+     */
     public List<int[]> getWinningPositions() {
         return winningPositions;
     }
 
+    /**
+     * Checks if the given column is full (no more available spaces).
+     *
+     * @param col the column index to check
+     * @return true if the column is full, false otherwise
+     */
     public boolean isColumnFull(int col) {
         return board[0][col] != 0;
     }
 
+    /**
+     * Finds the first available row in the specified column from bottom to top.
+     *
+     * @param col the column index
+     * @return the row index if available, or -1 if the column is full
+     */
     public int getAvailableRow(int col) {
         for (int row = rows - 1; row >= 0; row--) {
             if (board[row][col] == 0) {
@@ -34,6 +67,13 @@ public class GameLogic {
         return -1;
     }
 
+    /**
+     * Places a player's piece into the specified column if there is room.
+     *
+     * @param col    the column index
+     * @param player the player number (1 or 2)
+     * @return true if the move was successful, false if the column is full
+     */
     public boolean makeMove(int col, int player) {
         int row = getAvailableRow(col);
         if (row != -1) {
@@ -43,9 +83,15 @@ public class GameLogic {
         return false;
     }
 
+    /**
+     * Checks whether the specified player has a winning sequence of four.
+     * Updates the winningPositions list if a win is found.
+     *
+     * @param player the player number (1 or 2)
+     * @return true if the player has won, false otherwise
+     */
     public boolean checkWinState(int player) {
         winningPositions.clear();
-
         // Horizontal
         for (int row = 0; row < rows; row++) {
             for (int col = 0; col <= cols - 4; col++) {
@@ -64,7 +110,6 @@ public class GameLogic {
                 }
             }
         }
-
         // Vertical
         for (int col = 0; col < cols; col++) {
             for (int row = 0; row <= rows - 4; row++) {
@@ -83,7 +128,6 @@ public class GameLogic {
                 }
             }
         }
-
         // Diagonal /
         for (int row = 3; row < rows; row++) {
             for (int col = 0; col <= cols - 4; col++) {
@@ -102,7 +146,6 @@ public class GameLogic {
                 }
             }
         }
-
         // Diagonal \
         for (int row = 0; row <= rows - 4; row++) {
             for (int col = 0; col <= cols - 4; col++) {
@@ -121,11 +164,14 @@ public class GameLogic {
                 }
             }
         }
-
         return false;
     }
 
-
+    /**
+     * Checks whether the board is full (no available moves).
+     *
+     * @return true if the board is full, false otherwise
+     */
     public boolean isBoardFull() {
         for (int col = 0; col < cols; col++) {
             if (!isColumnFull(col)) return false;
@@ -133,6 +179,9 @@ public class GameLogic {
         return true;
     }
 
+    /**
+     * Resets the game board to its initial empty state.
+     */
     public void resetBoard() {
         for (int row = 0; row < rows; row++) {
             for (int col = 0; col < cols; col++) {
