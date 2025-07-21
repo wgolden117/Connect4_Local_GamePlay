@@ -8,31 +8,62 @@ import javafx.beans.binding.Bindings;
 import javafx.geometry.HPos;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
-import javafx.scene.control.*;
-import javafx.scene.layout.*;
+import javafx.scene.control.Button;
+import javafx.scene.control.ChoiceDialog;
+import javafx.scene.control.Label;
+import javafx.scene.control.MenuBar;
+import javafx.scene.layout.Border;
+import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.BorderStroke;
+import javafx.scene.layout.BorderStrokeStyle;
+import javafx.scene.layout.BorderWidths;
+import javafx.scene.layout.CornerRadii;
+import javafx.scene.layout.GridPane;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.Pane;
+import javafx.scene.layout.Priority;
+import javafx.scene.layout.Region;
+import javafx.scene.layout.StackPane;
+import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontPosture;
 import javafx.scene.text.FontWeight;
-import logic.*;
-import javafx.scene.layout.Border;
-import javafx.scene.layout.BorderStroke;
-import javafx.scene.layout.BorderStrokeStyle;
-import javafx.scene.layout.CornerRadii;
-import javafx.scene.layout.BorderWidths;
-import java.util.*;
+import logic.AIPlayer;
+import logic.BoardRenderer;
+import logic.GameController;
+import logic.GameLogic;
+import java.util.Optional;
 
+/**
+ * BoardLayout is responsible for constructing and managing the layout of the Connect 4 game board,
+ * including the game grid, player labels, animations, and menu bar.
+ * It supports both Player vs. Player and Player vs. Computer modes.
+ */
 public class BoardLayout {
     private final GameLogic gameLogic;
     private final PlayerSettings playerSettings;
     private Label player1Label;
     private Label player2Label;
 
+    /**
+     * Constructs a new BoardLayout instance with the provided game logic and player settings.
+     *
+     * @param gameLogic       the game logic managing board state and win conditions
+     * @param playerSettings  the player settings for colors and names
+     */
     public BoardLayout(GameLogic gameLogic, PlayerSettings playerSettings) {
         this.gameLogic = gameLogic;
         this.playerSettings = playerSettings;
     }
 
+    /**
+     * Creates the full board layout including UI elements, animations, and interactions.
+     *
+     * @param labelText  the game mode label (e.g., "Player vs. Player")
+     * @param controller the main game controller for coordinating game flow
+     * @return an Optional containing the StackPane layout, or empty if the user cancels AI selection
+     */
     public Optional<StackPane> createBoardLayout(String labelText, GameController controller) {
         StackPane root = new StackPane();
         root.setPrefSize(850, 850);
@@ -156,6 +187,11 @@ public class BoardLayout {
         return Optional.of(root);
     }
 
+    /**
+     * Highlights the active player's name label with a colored border.
+     *
+     * @param currentPlayer the currently active player (1 or 2)
+     */
     private void updateTurnHighlight(int currentPlayer) {
         Color borderColor = (currentPlayer == 1)
                 ? playerSettings.getPlayerOneColor()
@@ -174,10 +210,23 @@ public class BoardLayout {
         inactiveLabel.setBorder(null);
     }
 
+    /**
+     * Public method to refresh the turn highlight based on current player.
+     *
+     * @param currentPlayer the player whose turn is active
+     */
     public void refreshTurnHighlight(int currentPlayer) {
         updateTurnHighlight(currentPlayer);
     }
 
+    /**
+     * Sets up the column drop buttons and column numbers for Player vs. Player mode.
+     *
+     * @param grid       the GridPane to which buttons and labels are added
+     * @param controller the main game controller
+     * @param labelText  the game mode label
+     * @param buttons    an array to store button references
+     */
     private void setupPlayerVsPlayer(GridPane grid, GameController controller, String labelText, Button[] buttons) {
         for (int col = 0; col < 7; col++) {
             Button button = new Button("Drop");
@@ -195,6 +244,14 @@ public class BoardLayout {
         }
     }
 
+    /**
+     * Sets up the column drop buttons and column numbers for Player vs. AI mode.
+     *
+     * @param grid       the GridPane to which buttons and labels are added
+     * @param controller the main game controller
+     * @param labelText  the game mode label
+     * @param buttons    an array to store button references
+     */
     private void setupPlayerVsAI(GridPane grid, GameController controller, String labelText, Button[] buttons) {
         for (int col = 0; col < 7; col++) {
             Button button = new Button("Drop");

@@ -3,15 +3,34 @@ package ui;
 import javafx.beans.binding.Bindings;
 import javafx.geometry.Insets;
 import javafx.scene.Scene;
-import javafx.scene.control.*;
+import javafx.scene.control.Alert;
+import javafx.scene.control.Button;
+import javafx.scene.control.ColorPicker;
+import javafx.scene.control.Label;
+import javafx.scene.control.TextField;
 import javafx.scene.layout.GridPane;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 
+/**
+ * A dialog window that allows the user to customize player settings, including
+ * player names and colors. Ensures that both players have different names and colors.
+ *
+ * If playing against the computer, Player 2's name is fixed to "Computer" and cannot be edited.
+ *
+ * @author Weronika Golden
+ * @version 3.0
+ */
 public class PlayerSettingsDialog {
     private final Stage dialogStage;
     private final PlayerSettings playerSettings;
 
+    /**
+     * Constructs a PlayerSettingsDialog with preloaded settings.
+     *
+     * @param settings    the player settings object to update
+     * @param vsComputer  true if Player 2 should be labeled and locked as "Computer"
+     */
     public PlayerSettingsDialog(PlayerSettings settings, boolean vsComputer) {
         this.playerSettings = settings;
         this.dialogStage = new Stage();
@@ -107,10 +126,18 @@ public class PlayerSettingsDialog {
         dialogStage.setScene(new Scene(grid));
     }
 
+    /**
+     * Displays the dialog and blocks until it is closed.
+     */
     public void show() {
         dialogStage.showAndWait();
     }
 
+    /**
+     * Displays an error alert with the given message.
+     *
+     * @param message the error message to show
+     */
     private void showError(String message) {
         Alert alert = new Alert(Alert.AlertType.ERROR);
         alert.setHeaderText(null);

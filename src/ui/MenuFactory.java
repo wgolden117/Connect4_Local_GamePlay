@@ -1,10 +1,21 @@
 package ui;
 
-import javafx.scene.control.*;
-import javafx.scene.control.Alert.AlertType;
+import javafx.scene.control.Alert;
+import javafx.scene.control.CheckMenuItem;
+import javafx.scene.control.Menu;
+import javafx.scene.control.MenuBar;
+import javafx.scene.control.MenuItem;
 import javafx.stage.Stage;
 import logic.GameController;
 
+/**
+ * A factory class responsible for creating the menu bar in the Connect 4 GUI.
+ * This includes file operations (main menu and exit), player settings,
+ * sound preferences, and help instructions.
+ *
+ * @author Weronika Golden
+ * @version 3.0
+ */
 public class MenuFactory {
     private final Runnable onExit;
     private final Stage primaryStage;
@@ -12,6 +23,15 @@ public class MenuFactory {
     private final GameController controller;
     private final boolean vsComputer;
 
+    /**
+     * Constructs a new MenuFactory.
+     *
+     * @param onExit         a runnable to execute when the "Exit" menu item is selected
+     * @param primaryStage   the main stage of the application
+     * @param playerSettings the current player settings (names, colors, etc.)
+     * @param controller     the main game controller
+     * @param vsComputer     true if the game mode is Player vs. Computer; false otherwise
+     */
     public MenuFactory(Runnable onExit, Stage primaryStage, PlayerSettings playerSettings, GameController controller, boolean vsComputer) {
         this.onExit = onExit;
         this.primaryStage = primaryStage;
@@ -20,6 +40,16 @@ public class MenuFactory {
         this.vsComputer = vsComputer;
     }
 
+    /**
+     * Creates the full menu bar, including:
+     * <ul>
+     *     <li>File menu (Main Menu, Exit)</li>
+     *     <li>Settings menu (Player Preferences, Sounds)</li>
+     *     <li>Help menu (How to Play)</li>
+     * </ul>
+     *
+     * @return a fully constructed JavaFX {@link MenuBar}
+     */
     public MenuBar createMenuBar() {
         MenuBar menuBar = new MenuBar();
 
@@ -36,7 +66,6 @@ public class MenuFactory {
         exitItem.setOnAction(e -> onExit.run());
 
         fileMenu.getItems().addAll(mainMenuItem, exitItem);
-
 
         // Settings Menu
         Menu settingsMenu = new Menu("Settings");
@@ -71,7 +100,6 @@ public class MenuFactory {
         // Add sounds submenu to settings menu
         settingsMenu.getItems().add(soundsSubMenu);
 
-
         // Help Menu
         Menu helpMenu = new Menu("Help");
         MenuItem howToPlay = new MenuItem("How to Play");
@@ -82,8 +110,11 @@ public class MenuFactory {
         return menuBar;
     }
 
+    /**
+     * Displays a pop-up dialog explaining the rules of Connect 4.
+     */
     private void showHowToPlay() {
-        Alert alert = new Alert(AlertType.INFORMATION);
+        Alert alert = new Alert(Alert.AlertType.INFORMATION);
         alert.initOwner(primaryStage);
         alert.setTitle("How to Play");
         alert.setHeaderText("Connect 4 Rules");

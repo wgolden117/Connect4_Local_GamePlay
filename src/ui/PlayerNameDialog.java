@@ -2,16 +2,33 @@ package ui;
 
 import javafx.geometry.Insets;
 import javafx.scene.Scene;
-import javafx.scene.control.*;
+import javafx.scene.control.Alert;
+import javafx.scene.control.Button;
+import javafx.scene.control.Label;
+import javafx.scene.control.TextField;
 import javafx.scene.layout.GridPane;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 
+/**
+ * A custom modal dialog that prompts the user to enter names for Player 1 and Player 2.
+ * Validates names using {@link NameValidator} and updates the provided {@link PlayerSettings}.
+ * Player 2's field is disabled if playing against the computer.
+ *
+ * @author Weronika Golden
+ * @version 3.0
+ */
 public class PlayerNameDialog {
     private final Stage dialogStage;
     private final PlayerSettings playerSettings;
     private boolean okClicked = false;
 
+    /**
+     * Constructs the player name input dialog.
+     *
+     * @param settings     the player settings object to update
+     * @param vsComputer   true if Player 2 should be set as "Computer" and disabled
+     */
     public PlayerNameDialog(PlayerSettings settings, boolean vsComputer) {
         this.playerSettings = settings;
         this.dialogStage = new Stage();
@@ -81,15 +98,25 @@ public class PlayerNameDialog {
         dialogStage.setScene(new Scene(grid));
     }
 
+    /**
+     * Displays the dialog and waits for user interaction.
+     *
+     * @return true if the OK button was clicked and input was valid; false otherwise
+     */
+    public boolean showAndReturnResult() {
+        dialogStage.showAndWait();
+        return okClicked;
+    }
+
+    /**
+     * Displays an error alert with the provided message.
+     *
+     * @param message the error message to display
+     */
     private void showError(String message) {
         Alert alert = new Alert(Alert.AlertType.ERROR);
         alert.setHeaderText(null);
         alert.setContentText(message);
         alert.showAndWait();
-    }
-
-    public boolean showAndReturnResult() {
-        dialogStage.showAndWait();
-        return okClicked;
     }
 }

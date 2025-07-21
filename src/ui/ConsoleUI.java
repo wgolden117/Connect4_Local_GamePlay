@@ -7,23 +7,22 @@ import java.util.InputMismatchException;
 import java.util.Scanner;
 
 /**
+ * Console-based entry point for testing the Connect 4 game.
+ * Prompts the user to choose between launching the GUI or Console version.
  *
- * Console based UI to test the game
  * @author Weronika Golden
  * @version 3.0
- *
  */
-
 public class ConsoleUI {
+
     /**
+     * Prompts the user to choose between the GUI or Console version of the game.
+     * Launches the selected interface.
      *
-     * Asks the user of they would like the console
-     * or GUI version of the game.
-     * Launches the chosen selection.
-     *
+     * @param args command-line arguments passed to the application
      */
     public static void main(String[] args) {
-        Scanner scanner = new Scanner(System.in);
+      Scanner scanner = new Scanner(System.in);
 
       GUI guiInterface = new GUI();
 
@@ -56,10 +55,8 @@ public class ConsoleUI {
     }
 
     /**
-     *
-     * A method that asks the user to select player vs. player
-     * or player vs. computer. Then starts the game the user selected.
-     *
+     * Prompts the user to select either Player vs. Player or Player vs. Computer mode.
+     * Starts the corresponding console-based game session.
      */
     private static void consoleBased_UI(){
         Scanner scanner = new Scanner(System.in);
@@ -94,6 +91,5 @@ public class ConsoleUI {
                 System.out.println("Please choose a valid input.");
             }
         }
-    } // closes consoleBased_UI class
-
-} // closes Connect4TextConsole
+    }
+}
