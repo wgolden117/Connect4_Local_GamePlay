@@ -35,14 +35,12 @@ public class GameController {
     private final GameStateManager gameState;
     private final PlayerSettings playerSettings;
     private AIPlayer aiPlayer;
-
     // JavaFX stage and rendering
     private final Stage stage;
     private BoardRenderer boardRenderer;
     private BoardLayout boardLayout;
-
     // Animators and media
-    private static MediaPlayer backgroundPlayer;
+    private static volatile MediaPlayer backgroundPlayer;
     private GameAnimator gameAnimator;
     private ConfettiAnimator confettiAnimator;
     private MovingPieceAnimator movingPieceAnimator;
@@ -64,9 +62,9 @@ public class GameController {
         this.playerSettings = new PlayerSettings();
         // Will be instantiated fresh in loadBoard
 
-        if (backgroundPlayer == null) {  // Prevent overlap
-            setupBackgroundMusic();
-            playBackgroundMusic();
+        if (backgroundPlayer == null) {
+            GameController.setupBackgroundMusic();
+            GameController.playBackgroundMusic();
         }
     }
 
@@ -275,14 +273,13 @@ public class GameController {
         delay.play();
     }
 
-    /** Loads the background music from a WAV file and prepares it to loop. */
-    public void setupBackgroundMusic() {
+    public static synchronized void setupBackgroundMusic() {
         try {
-            URL musicURL = getClass().getResource("/sound/background_music.wav");
+            URL musicURL = GameController.class.getResource("/sound/background_music.wav");
             if (musicURL != null) {
                 Media media = new Media(musicURL.toURI().toString());
                 backgroundPlayer = new MediaPlayer(media);
-                backgroundPlayer.setCycleCount(MediaPlayer.INDEFINITE); // Loop forever
+                backgroundPlayer.setCycleCount(MediaPlayer.INDEFINITE);
             } else {
                 System.err.println("Background music file not found at /sound/background_music.wav");
             }
@@ -292,13 +289,13 @@ public class GameController {
     }
 
     /** Starts playing the background music if not already playing. */
-    public void playBackgroundMusic() {
+    public static void playBackgroundMusic() {
         if (isMusicPlaying()) return;  // Already playing
 
         stopBackgroundMusic();  // Just in case something's hanging
 
         try {
-            URL musicURL = getClass().getResource("/sound/background_music.wav");
+            URL musicURL = GameController.class.getResource("/sound/background_music.wav");
             if (musicURL != null) {
                 Media media = new Media(musicURL.toURI().toString());
                 backgroundPlayer = new MediaPlayer(media);
@@ -313,7 +310,7 @@ public class GameController {
     }
 
     /** Stops the background music if it is currently playing. */
-    public void stopBackgroundMusic() {
+    public static void stopBackgroundMusic() {
         if (backgroundPlayer != null) {
             backgroundPlayer.stop();
             backgroundPlayer.dispose();

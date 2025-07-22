@@ -17,7 +17,9 @@ public class AIPlayer {
     private final int aiPlayerId;
     private final int humanPlayerId;
     private final String difficulty;
-    private final int cols = 7;
+    private static final int cols = 7;
+    private static final Random RANDOM = new Random();
+
 
     /**
      * Constructs an AI player with specified difficulty and player ID.
@@ -52,10 +54,10 @@ public class AIPlayer {
      * @return a column index between 0 and 6
      */
     private int getRandomMove() {
-        Random random = new Random();
         int col;
         do {
-            col = random.nextInt(cols);
+            col = RANDOM.nextInt(cols);
+
         } while (gameLogic.isColumnFull(col));
         return col;
     }

@@ -17,7 +17,7 @@ import javafx.util.Duration;
  * It creates a visual effect of a game piece falling from the top of the screen
  * to its destination on the game board.
  */
-public class GameAnimator {
+public final class GameAnimator {
     private final StackPane root;
     private final Circle[][] circles;
     /**

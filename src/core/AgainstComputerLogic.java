@@ -26,6 +26,7 @@ public class AgainstComputerLogic {
     private static final char playerComputer = 'O';
     private final char[][] gameBoard;
     private final GameLogic gameLogic;
+    private static final Random RANDOM = new Random();
 
     /**
      *
@@ -99,12 +100,10 @@ public class AgainstComputerLogic {
             System.out.println("Error with delay: " + e.getMessage());
         }
 
-        Random random = new Random();
         int min = 0;
         int max = 6;
 
-
-        int randomNum = random.nextInt((max - min) + 1) + min;
+        int randomNum = RANDOM.nextInt(columns);
 
         for (int i = rows - 1; i >= 0; i--) {
             if (gameBoard[i][randomNum] == emptySpace) {
