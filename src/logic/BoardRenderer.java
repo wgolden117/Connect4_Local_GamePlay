@@ -26,9 +26,9 @@ import java.util.List;
  */
 public class BoardRenderer {
     private final StackPane root;
-    private final int rows = 6;
-    private final int cols = 7;
-    private final Circle[][] circles = new Circle[rows][cols];
+    private static final int ROWS = 6;
+    private static final int COLS = 7;
+    private final Circle[][] circles = new Circle[ROWS][COLS];
     private Button[] buttons;
 
     /**
@@ -56,8 +56,8 @@ public class BoardRenderer {
         grid.prefWidthProperty().bind(root.widthProperty());
         grid.prefHeightProperty().bind(root.heightProperty().multiply(0.75)); // Leave room for controls
 
-        for (int row = 0; row < rows; row++) {
-            for (int col = 0; col < cols; col++) {
+        for (int row = 0; row < ROWS; row++) {
+            for (int col = 0; col < COLS; col++) {
                 StackPane cell = new StackPane();
                 cell.setMinSize(0, 0);
                 cell.setMaxSize(Double.MAX_VALUE, Double.MAX_VALUE);
@@ -84,14 +84,14 @@ public class BoardRenderer {
             }
 
             RowConstraints rc = new RowConstraints();
-            rc.setPercentHeight(100.0 / rows);
+            rc.setPercentHeight(100.0 / ROWS);
             rc.setVgrow(Priority.ALWAYS);
             grid.getRowConstraints().add(rc);
         }
 
-        for (int col = 0; col < cols; col++) {
+        for (int col = 0; col < COLS; col++) {
             ColumnConstraints cc = new ColumnConstraints();
-            cc.setPercentWidth(100.0 / cols);
+            cc.setPercentWidth(100.0 / COLS);
             cc.setHgrow(Priority.ALWAYS);
             grid.getColumnConstraints().add(cc);
         }
@@ -125,7 +125,7 @@ public class BoardRenderer {
      * @param color the new fill color
      */
     public void setPiece(int row, int col, Color color) {
-        if (row >= 0 && row < rows && col >= 0 && col < cols) {
+        if (row >= 0 && row < ROWS && col >= 0 && col < COLS) {
             circles[row][col].setFill(color);
         }
     }

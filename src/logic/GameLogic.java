@@ -12,8 +12,8 @@ import java.util.List;
  * @version 2.0
  */
 public class GameLogic {
-    private final int rows = 6;
-    private final int cols = 7;
+    private static final int ROWS = 6;
+    private static final int COLS = 7;
     private final int[][] board;
     private final List<int[]> winningPositions = new ArrayList<>();
 
@@ -21,7 +21,7 @@ public class GameLogic {
      * Constructs a new GameLogic instance with an empty 6x7 board.
      */
     public GameLogic() {
-        board = new int[rows][cols];
+        board = new int[ROWS][COLS];
     }
 
     /**
@@ -59,7 +59,7 @@ public class GameLogic {
      * @return the row index if available, or -1 if the column is full
      */
     public int getAvailableRow(int col) {
-        for (int row = rows - 1; row >= 0; row--) {
+        for (int row = ROWS - 1; row >= 0; row--) {
             if (board[row][col] == 0) {
                 return row;
             }
@@ -93,8 +93,8 @@ public class GameLogic {
     public boolean checkWinState(int player) {
         winningPositions.clear();
         // Horizontal
-        for (int row = 0; row < rows; row++) {
-            for (int col = 0; col <= cols - 4; col++) {
+        for (int row = 0; row < ROWS; row++) {
+            for (int col = 0; col <= COLS - 4; col++) {
                 if (board[row][col] == player &&
                         board[row][col + 1] == player &&
                         board[row][col + 2] == player &&
@@ -111,8 +111,8 @@ public class GameLogic {
             }
         }
         // Vertical
-        for (int col = 0; col < cols; col++) {
-            for (int row = 0; row <= rows - 4; row++) {
+        for (int col = 0; col < COLS; col++) {
+            for (int row = 0; row <= ROWS - 4; row++) {
                 if (board[row][col] == player &&
                         board[row + 1][col] == player &&
                         board[row + 2][col] == player &&
@@ -129,8 +129,8 @@ public class GameLogic {
             }
         }
         // Diagonal /
-        for (int row = 3; row < rows; row++) {
-            for (int col = 0; col <= cols - 4; col++) {
+        for (int row = 3; row < ROWS; row++) {
+            for (int col = 0; col <= COLS - 4; col++) {
                 if (board[row][col] == player &&
                         board[row - 1][col + 1] == player &&
                         board[row - 2][col + 2] == player &&
@@ -147,8 +147,8 @@ public class GameLogic {
             }
         }
         // Diagonal \
-        for (int row = 0; row <= rows - 4; row++) {
-            for (int col = 0; col <= cols - 4; col++) {
+        for (int row = 0; row <= ROWS - 4; row++) {
+            for (int col = 0; col <= COLS - 4; col++) {
                 if (board[row][col] == player &&
                         board[row + 1][col + 1] == player &&
                         board[row + 2][col + 2] == player &&
@@ -173,7 +173,7 @@ public class GameLogic {
      * @return true if the board is full, false otherwise
      */
     public boolean isBoardFull() {
-        for (int col = 0; col < cols; col++) {
+        for (int col = 0; col < COLS; col++) {
             if (!isColumnFull(col)) return false;
         }
         return true;
@@ -183,8 +183,8 @@ public class GameLogic {
      * Resets the game board to its initial empty state.
      */
     public void resetBoard() {
-        for (int row = 0; row < rows; row++) {
-            for (int col = 0; col < cols; col++) {
+        for (int row = 0; row < ROWS; row++) {
+            for (int col = 0; col < COLS; col++) {
                 board[row][col] = 0;
             }
         }
