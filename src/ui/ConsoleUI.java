@@ -3,6 +3,8 @@ package ui;
 import core.AgainstComputerLogic;
 import core.LogicForConsole;
 import javafx.application.Application;
+
+import java.nio.charset.StandardCharsets;
 import java.util.InputMismatchException;
 import java.util.Scanner;
 
@@ -22,7 +24,7 @@ public class ConsoleUI {
      * @param args command-line arguments passed to the application
      */
     public static void main(String[] args) {
-      Scanner scanner = new Scanner(System.in);
+        Scanner scanner = new Scanner(System.in, StandardCharsets.UTF_8);
 
       GUI guiInterface = new GUI();
 
@@ -59,7 +61,7 @@ public class ConsoleUI {
      * Starts the corresponding console-based game session.
      */
     private static void consoleBased_UI(){
-        Scanner scanner = new Scanner(System.in);
+        Scanner scanner = new Scanner(System.in, StandardCharsets.UTF_8);
 
         LogicForConsole game = new LogicForConsole();
         AgainstComputerLogic againstComputer = new AgainstComputerLogic();

@@ -4,6 +4,7 @@ import logic.GameLogic;
 import java.util.InputMismatchException;
 import java.util.Random;
 import java.util.Scanner;
+import java.nio.charset.StandardCharsets;
 
 /**
  *
@@ -100,9 +101,6 @@ public class AgainstComputerLogic {
             System.out.println("Error with delay: " + e.getMessage());
         }
 
-        int min = 0;
-        int max = 6;
-
         int randomNum = RANDOM.nextInt(columns);
 
         for (int i = rows - 1; i >= 0; i--) {
@@ -124,7 +122,7 @@ public class AgainstComputerLogic {
      */
     public void playGame_againstComputer() {
 
-        Scanner scanner = new Scanner(System.in);
+        Scanner scanner = new Scanner(System.in, StandardCharsets.UTF_8);
         boolean playAgain = true; // Loop control for replaying the game
 
         while (playAgain) {

@@ -1,6 +1,7 @@
 package core;
 import logic.GameLogic;
 
+import java.nio.charset.StandardCharsets;
 import java.util.InputMismatchException;
 import java.util.Scanner;
 
@@ -84,7 +85,7 @@ public class LogicForConsole {
      *
      */
     public void playGame() {
-        Scanner scanner = new Scanner(System.in);
+        Scanner scanner = new Scanner(System.in, StandardCharsets.UTF_8);
         boolean playAgain = true;
 
         while (playAgain) {
