@@ -13,6 +13,7 @@ import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
 import javafx.util.Duration;
 import ui.PlayerSettings;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -21,20 +22,45 @@ import java.util.List;
  * Includes bounce interactions on click and dynamic motion.
  */
 public class MovingPieceAnimator {
+    // Piece configuration
+    private static final double PIECE_RADIUS = 10;
+    private static final double PIECE_STROKE_WIDTH = 4;
+    private static final int TOTAL_PIECES = 24;
+    private static final int PIECES_PER_PLAYER = 12;
+
+    // Spawn position
+    private static final double SPAWN_Y_OFFSET = -200;
+
+    // Bounce animation
+    private static final double BOUNCE_HEIGHT_INITIAL = 100;
+    private static final double BOUNCE_DISTANCE_INITIAL = 60;
+    private static final double BOUNCE_DURATION_BASE = 150;
+    private static final int BOUNCE_ITERATIONS = 5;
+    private static final double RANDOM_OFFSET_SCALE = 0.5;
+    private static final double BOUNCE_DECAY = 0.6;
+
+    // Physics simulation
+    private static final double GRAVITY = 0.3;
+    private static final double BOUNCE_ENERGY_LOSS = -0.85;
+    private static final double FRICTION = 0.995;
+
     private final Pane rollingContainer;
     private final List<RollingPiece> rollingPieces = new ArrayList<>();
     private final PlayerSettings playerSettings;
+    private static final double SPAWN_Y_RANDOM_RANGE = 100;
+    private static final double BOUNCE_DURATION_INCREMENT = 30;
+
 
     /**
      * Constructs a MovingPieceAnimator.
      *
-     * @param rollingContainer The Pane that contains and renders rolling pieces.
-     * @param playerSettings   A shared reference to PlayerSettings, used for dynamic color updates.
+     * @param container The Pane that contains and renders rolling pieces.
+     * @param settings   A shared reference to PlayerSettings, used for dynamic color updates.
      *                         This reference is expected to remain valid and shared.
      */
-    public MovingPieceAnimator(Pane rollingContainer, PlayerSettings playerSettings) {
-        this.rollingContainer = rollingContainer;
-        this.playerSettings = playerSettings;
+    public MovingPieceAnimator(Pane container, PlayerSettings settings) {
+        this.rollingContainer = container;
+        this.playerSettings = settings;
     }
 
     /**
@@ -54,24 +80,20 @@ public class MovingPieceAnimator {
         rollingContainer.getChildren().clear();
         rollingPieces.clear();
 
-        int totalPieces = 24;
-        double radius = 10
-                ;
-
         Platform.runLater(() -> {
             double paneWidth = rollingContainer.getWidth();
             double paneHeight = rollingContainer.getHeight();
 
-            for (int i = 0; i < totalPieces; i++) {
-                boolean isPlayerOne = i < 12;
+            for (int i = 0; i < TOTAL_PIECES; i++) {
+                boolean isPlayerOne = i < PIECES_PER_PLAYER;
                 Color color = isPlayerOne ? playerSettings.getPlayerOneColor() : playerSettings.getPlayerTwoColor();
 
-                Circle piece = new Circle(radius, color);
+                Circle piece = new Circle(PIECE_RADIUS, color);
                 piece.setStroke(Color.BLACK);
-                piece.setStrokeWidth(4);
+                piece.setStrokeWidth(PIECE_STROKE_WIDTH);
 
-                double x = Math.random() * (paneWidth - 2 * radius);
-                double y = -200 - Math.random() * 100; // Spawn well above visible pane
+                double x = Math.random() * (paneWidth - 2 * PIECE_RADIUS);
+                double y = SPAWN_Y_OFFSET - Math.random() * SPAWN_Y_RANDOM_RANGE;
 
                 piece.setLayoutX(x);
                 piece.setLayoutY(y);
@@ -79,13 +101,11 @@ public class MovingPieceAnimator {
                 piece.setOnMouseClicked(ev -> bounceRollingPiece(piece));
 
                 rollingContainer.getChildren().add(piece);
-                RollingPiece rp = new RollingPiece(piece, (Math.random() - 0.5) * 2, 0);
+                RollingPiece rp = new RollingPiece(piece, (Math.random() - RANDOM_OFFSET_SCALE) * 2, 0);
                 rollingPieces.add(rp);
             }
 
-            startPhysicsLoop(radius, paneWidth, paneHeight);
-
-            // Refresh colors now that pieces are created
+            startPhysicsLoop(paneWidth, paneHeight);
             refreshRollingPieceColors();
         });
     }
@@ -99,15 +119,14 @@ public class MovingPieceAnimator {
         double startX = piece.getLayoutX();
         double startY = piece.getLayoutY();
 
-        double bounceHeight = 100;
-        double bounceDistance = 60;
-        double baseDuration = 150;
+        double bounceHeight = BOUNCE_HEIGHT_INITIAL;
+        double bounceDistance = BOUNCE_DISTANCE_INITIAL;
 
         List<Animation> bounceSequence = new ArrayList<>();
 
-        for (int i = 0; i < 5; i++) {
-            double duration = baseDuration + i * 30;
-            double offsetX = (Math.random() - 0.5) * bounceDistance;
+        for (int i = 0; i < BOUNCE_ITERATIONS; i++) {
+            double duration = BOUNCE_DURATION_BASE + i * BOUNCE_DURATION_INCREMENT;
+            double offsetX = (Math.random() - RANDOM_OFFSET_SCALE) * bounceDistance;
 
             double midX = startX + offsetX;
             double midY = startY - bounceHeight;
@@ -116,7 +135,6 @@ public class MovingPieceAnimator {
 
             KeyValue kvUpX = new KeyValue(piece.layoutXProperty(), midX, Interpolator.EASE_OUT);
             KeyValue kvUpY = new KeyValue(piece.layoutYProperty(), midY, Interpolator.EASE_OUT);
-
             KeyValue kvDownX = new KeyValue(piece.layoutXProperty(), midX, Interpolator.EASE_IN);
             KeyValue kvDownY = new KeyValue(piece.layoutYProperty(), endY, Interpolator.EASE_IN);
 
@@ -126,12 +144,11 @@ public class MovingPieceAnimator {
             Timeline bounce = new Timeline(kfUp, kfDown);
             bounceSequence.add(bounce);
 
-            // Update starting point for next bounce
             startX = midX;
             startY = endY;
 
-            bounceHeight *= 0.6;
-            bounceDistance *= 0.6;
+            bounceHeight *= BOUNCE_DECAY;
+            bounceDistance *= BOUNCE_DECAY;
         }
 
         SequentialTransition fullBounce = new SequentialTransition();
@@ -142,60 +159,12 @@ public class MovingPieceAnimator {
     /**
      * Starts a physics loop that simulates gravity, friction, wall collision,
      * and simple 1D elastic collisions between pieces.
+     *
+     * @param paneWidth  The width of the animation container.
+     * @param paneHeight The height of the animation container.
      */
-    private void startPhysicsLoop(double radius, double paneWidth, double paneHeight) {
-        final double gravity = 0.3;       // Slower descent = longer bounces
-        final double friction = 0.995;    // Slower sideways decay = longer motion
-        final double bounceLoss = 0.85;   // Higher = more energy retained after bounce
-        AnimationTimer timer = new AnimationTimer() {
-            @Override
-            public void handle(long now) {
-                for (int i = 0; i < rollingPieces.size(); i++) {
-                    RollingPiece rp = rollingPieces.get(i);
-                    Circle c = rp.circle;
-
-                    rp.vy += gravity;
-
-                    // Update position
-                    double x = c.getLayoutX() + rp.vx;
-                    double y = c.getLayoutY() + rp.vy;
-
-                    // Wall collision
-                    if (x <= radius || x >= paneWidth - radius) {
-                        rp.vx *= -1;
-                        x = Math.max(radius, Math.min(x, paneWidth - radius));
-                    }
-                    if (y >= paneHeight - radius) {
-                        y = paneHeight - radius;
-                        rp.vy *= -bounceLoss;
-                        rp.vx *= friction;
-                    }
-
-                    // Collision with other pieces
-                    for (int j = i + 1; j < rollingPieces.size(); j++) {
-                        RollingPiece other = rollingPieces.get(j);
-                        Circle oc = other.circle;
-
-                        double dx = x - oc.getLayoutX();
-                        double dy = y - oc.getLayoutY();
-                        double dist = Math.hypot(dx, dy);
-
-                        if (dist < radius * 2) {
-                            // Simple 1D elastic collision
-                            double tempVx = rp.vx;
-                            double tempVy = rp.vy;
-                            rp.vx = other.vx;
-                            rp.vy = other.vy;
-                            other.vx = tempVx;
-                            other.vy = tempVy;
-                        }
-                    }
-                    c.setLayoutX(x);
-                    c.setLayoutY(y);
-                }
-            }
-        };
-        timer.start();
+    private void startPhysicsLoop(double paneWidth, double paneHeight) {
+        new PhysicsLoop(MovingPieceAnimator.PIECE_RADIUS, paneWidth, paneHeight).start();
     }
 
     /**
@@ -205,10 +174,77 @@ public class MovingPieceAnimator {
     public void refreshRollingPieceColors() {
         Platform.runLater(() -> {
             for (int i = 0; i < rollingPieces.size(); i++) {
-                boolean isPlayerOne = i < 12;
+                boolean isPlayerOne = i < PIECES_PER_PLAYER;
                 Color newColor = isPlayerOne ? playerSettings.getPlayerOneColor() : playerSettings.getPlayerTwoColor();
                 rollingPieces.get(i).setFill(newColor);
             }
         });
+    }
+
+    /**
+     * Handles the ongoing physics animation loop for rolling pieces.
+     */
+    private class PhysicsLoop extends AnimationTimer {
+        private final double radius;
+        private final double paneWidth;
+        private final double paneHeight;
+
+        /**
+         * Constructs the PhysicsLoop with required pane bounds and piece radius.
+         *
+         * @param spawnRadius     Radius of the rolling pieces.
+         * @param width  Width of the container pane.
+         * @param height Height of the container pane.
+         */
+        PhysicsLoop(double spawnRadius, double width, double height) {
+            this.radius = spawnRadius;
+            this.paneWidth = width;
+            this.paneHeight = height;
+        }
+
+        @Override
+        public void handle(long now) {
+            for (int i = 0; i < rollingPieces.size(); i++) {
+                RollingPiece rp = rollingPieces.get(i);
+                Circle c = rp.circle;
+
+                rp.vy += GRAVITY;
+
+                double x = c.getLayoutX() + rp.vx;
+                double y = c.getLayoutY() + rp.vy;
+
+                if (x <= radius || x >= paneWidth - radius) {
+                    rp.vx *= -1;
+                    x = Math.max(radius, Math.min(x, paneWidth - radius));
+                }
+
+                if (y >= paneHeight - radius) {
+                    y = paneHeight - radius;
+                    rp.vy *= BOUNCE_ENERGY_LOSS;
+                    rp.vx *= FRICTION;
+                }
+
+                for (int j = i + 1; j < rollingPieces.size(); j++) {
+                    RollingPiece other = rollingPieces.get(j);
+                    Circle oc = other.circle;
+
+                    double dx = x - oc.getLayoutX();
+                    double dy = y - oc.getLayoutY();
+                    double dist = Math.hypot(dx, dy);
+
+                    if (dist < radius * 2) {
+                        double tempVx = rp.vx;
+                        double tempVy = rp.vy;
+                        rp.vx = other.vx;
+                        rp.vy = other.vy;
+                        other.vx = tempVx;
+                        other.vy = tempVy;
+                    }
+                }
+
+                c.setLayoutX(x);
+                c.setLayoutY(y);
+            }
+        }
     }
 }
