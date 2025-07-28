@@ -100,12 +100,13 @@ public class BoardRenderer {
 
     /**
      * Assigns the drop buttons used to control the game.
+     * A defensive copy of the array is made to avoid external mutation.
+     *
      * @param buttons array of column drop buttons
      */
     public void setButtons(Button[] buttons) {
-        this.buttons = buttons;
+        this.buttons = buttons != null ? buttons.clone() : null;
     }
-
     /**
      * Enables or disables all column drop buttons.
      * @param disabled true to disable, false to enable

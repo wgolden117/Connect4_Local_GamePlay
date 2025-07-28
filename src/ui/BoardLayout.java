@@ -48,9 +48,16 @@ public class BoardLayout {
 
     /**
      * Constructs a new BoardLayout instance with the provided game logic and player settings.
+     * <p>
+     * This constructor stores references to the provided {@code GameLogic} and {@code PlayerSettings}
+     * objects to support game state access and dynamic UI updates. The {@code playerSettings} instance
+     * is shared across UI components to reflect live changes such as player names and colors via property binding.
+     * This usage is safe as {@code BoardLayout} does not modify the internal state of {@code PlayerSettings}
+     * directly but uses it for reactive bindings and layout refreshes.
+     * </p>
      *
      * @param gameLogic       the game logic managing board state and win conditions
-     * @param playerSettings  the player settings for colors and names
+     * @param playerSettings  the player settings for colors and names (shared via property bindings)
      */
     public BoardLayout(GameLogic gameLogic, PlayerSettings playerSettings) {
         this.gameLogic = gameLogic;

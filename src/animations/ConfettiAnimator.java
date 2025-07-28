@@ -41,7 +41,8 @@ public class ConfettiAnimator {
     public ConfettiAnimator(StackPane root, Pane rollingContainer, List<RollingPiece> rollingPieces) {
         this.root = root;
         this.rollingContainer = rollingContainer;
-        this.rollingPieces = rollingPieces;
+        this.rollingPieces = new ArrayList<>(rollingPieces);
+
     }
 
     /**

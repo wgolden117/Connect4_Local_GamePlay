@@ -25,11 +25,15 @@ public class MenuFactory {
 
     /**
      * Constructs a new MenuFactory.
+     * This factory holds references to the {@code PlayerSettings} and {@code GameController}
+     * objects to allow real-time updates to player preferences and game audio settings
+     * through menu interactions. These references are intentionally shared to preserve
+     * application state and enable consistent behavior across components.
      *
      * @param onExit         a runnable to execute when the "Exit" menu item is selected
      * @param primaryStage   the main stage of the application
      * @param playerSettings the current player settings (names, colors, etc.)
-     * @param controller     the main game controller
+     * @param controller     the main game controller, used to manage sound and navigation
      * @param vsComputer     true if the game mode is Player vs. Computer; false otherwise
      */
     public MenuFactory(Runnable onExit, Stage primaryStage, PlayerSettings playerSettings, GameController controller, boolean vsComputer) {

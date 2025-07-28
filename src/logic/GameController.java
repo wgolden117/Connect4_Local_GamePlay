@@ -117,7 +117,16 @@ public class GameController {
         this.dropSoundEnabled = enabled;
     }
 
-    /** Sets the board renderer responsible for updating the grid view. */
+
+    /**
+     * Sets the board renderer responsible for updating the grid view.
+     * This method intentionally stores a reference to the provided {@code BoardRenderer}
+     * instance, as it is created and managed by {@code BoardLayout} during board setup,
+     * and is not reused across sessions. The renderer is used exclusively for UI updates
+     * during a single game session, and not modified externally.
+     *
+     * @param boardRenderer the BoardRenderer to use for updating the game board UI
+     */
     public void setBoardRenderer(BoardRenderer boardRenderer) {
         this.boardRenderer = boardRenderer;
     }

@@ -30,8 +30,12 @@ public final class GameAnimator {
     public GameAnimator(StackPane root, Circle[][] circles) {
         if (root == null) throw new IllegalArgumentException("Root StackPane cannot be null");
         this.root = root;
-        this.circles = circles;
+        this.circles = new Circle[circles.length][];
+        for (int i = 0; i < circles.length; i++) {
+            this.circles[i] = circles[i].clone(); // shallow copy per row
+        }
     }
+
     /**
      * Animates a falling piece into the specified board location.
      *

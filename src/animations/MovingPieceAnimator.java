@@ -29,7 +29,8 @@ public class MovingPieceAnimator {
      * Constructs a MovingPieceAnimator.
      *
      * @param rollingContainer The Pane that contains and renders rolling pieces.
-     * @param playerSettings   PlayerSettings used for determining piece colors.
+     * @param playerSettings   A shared reference to PlayerSettings, used for dynamic color updates.
+     *                         This reference is expected to remain valid and shared.
      */
     public MovingPieceAnimator(Pane rollingContainer, PlayerSettings playerSettings) {
         this.rollingContainer = rollingContainer;

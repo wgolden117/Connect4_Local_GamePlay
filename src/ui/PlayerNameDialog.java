@@ -25,6 +25,10 @@ public class PlayerNameDialog {
 
     /**
      * Constructs the player name input dialog.
+     * This constructor stores a reference to the {@code PlayerSettings} object so that it can
+     * read existing names and apply validated user input directly to the shared settings.
+     * This design supports two-way communication between the UI and the game logic and is
+     * safe under the assumption that {@code PlayerSettings} is not modified concurrently.
      *
      * @param settings     the player settings object to update
      * @param vsComputer   true if Player 2 should be set as "Computer" and disabled

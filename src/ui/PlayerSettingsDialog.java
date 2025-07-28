@@ -27,6 +27,10 @@ public class PlayerSettingsDialog {
 
     /**
      * Constructs a PlayerSettingsDialog with preloaded settings.
+     * This dialog intentionally stores a reference to the shared {@code PlayerSettings}
+     * so that it can directly apply user changes (names and colors) to the game state.
+     * This is safe under the assumption that {@code PlayerSettings} is not accessed
+     * concurrently from other threads and is only updated via the UI.
      *
      * @param settings    the player settings object to update
      * @param vsComputer  true if Player 2 should be labeled and locked as "Computer"
