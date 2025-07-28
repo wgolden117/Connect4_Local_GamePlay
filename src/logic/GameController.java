@@ -259,7 +259,10 @@ public class GameController {
 
         if (gameLogic.checkWinState(currentPlayer)) {
             gameState.setGameOver(true);
-            displayMessage("Player " + currentPlayer + " Wins!", true, labelText);
+            String winnerName = (currentPlayer == 1)
+                    ? playerSettings.getPlayerOneName()
+                    : playerSettings.getPlayerTwoName();
+            displayMessage(winnerName + " Wins!", true, labelText);
             List<int[]> winPositions = gameLogic.getWinningPositions();
             boardRenderer.highlightWinningLine(winPositions, currentColor);
             confettiAnimator.explodeRollingPiecesIntoConfetti();
@@ -416,17 +419,21 @@ public class GameController {
             if (closeGame && result.isPresent() && result.get() == ButtonType.YES) {
                 playAgain(labelText);
             } else {
-                if (!isMusicPlaying()) {
-                    stopBackgroundMusic();  // Defensive cleanup
-                    playBackgroundMusic();  // Restart music only if not already playing
-                }
-                Platform.runLater(() -> {
-                    try {
-                        new ui.GUI().start(stage);
-                    } catch (Exception e) {
-                        System.err.printf("Failed to return to main menu: %s%n", e.getMessage());
+                // Only return to main menu if this is not the "column full" message
+                if (!"Column is full. Please choose another column!".equals(message)) {
+                    if (!isMusicPlaying()) {
+                        stopBackgroundMusic();  // Defensive cleanup
+                        playBackgroundMusic();  // Restart music only if not already playing
                     }
-                });
+                    Platform.runLater(() -> {
+                        try {
+                            new ui.GUI().start(stage);
+                        } catch (Exception e) {
+                            System.err.printf("Failed to return to main menu: %s%n", e.getMessage());
+                        }
+                    });
+                }
+                // Otherwise, do nothing and let the game continue
             }
         });
     }

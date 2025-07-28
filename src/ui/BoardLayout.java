@@ -81,6 +81,7 @@ public class BoardLayout {
 
         // Set up board renderer
         BoardRenderer boardRenderer = new BoardRenderer(root);
+        GridPane grid = boardRenderer.createGrid();
         GameAnimator gameAnimator = new GameAnimator(root, boardRenderer.getCircles());
         controller.setGameAnimator(gameAnimator);
 
@@ -90,7 +91,6 @@ public class BoardLayout {
         ConfettiAnimator confettiAnimator = new ConfettiAnimator(root, rollingPieceContainer, movingPieceAnimator.getRollingPieces());
         controller.setConfettiAnimator(confettiAnimator);
 
-        GridPane grid = boardRenderer.createGrid();
         grid.setHgap(10);
         grid.setVgap(10);
         grid.setAlignment(Pos.CENTER);

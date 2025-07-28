@@ -45,8 +45,16 @@ public final class GameAnimator {
      * @param onFinish A callback to execute after the animation completes.
      */
     public void animateDrop(int col, int row, Color color, Runnable onFinish) {
-        Circle target = circles[row][col];
+        if (row < 0 || row >= circles.length || col < 0 || col >= circles[0].length) {
+            System.err.printf("Invalid drop position: row=%d, col=%d%n", row, col);
+            return;
+        }
 
+        Circle target = circles[row][col];
+        if (target == null) {
+            System.err.printf("Target circle is null at row=%d, col=%d%n", row, col);
+            return;
+        }
         // Defer to next pulse to ensure layout is valid
         Platform.runLater(() -> {
             if (root.getScene() == null) {
