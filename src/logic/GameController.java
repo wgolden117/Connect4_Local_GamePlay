@@ -46,6 +46,12 @@ public class GameController {
     private MovingPieceAnimator movingPieceAnimator;
     private boolean dropSoundEnabled = true;
     private boolean vsComputer;
+    // Constants
+    private static final int MIN_STAGE_WIDTH = 850;
+    private static final int MIN_STAGE_HEIGHT = 850;
+    private static final int MAX_MOVES = 42;
+    private static final double AI_MOVE_DELAY_SECONDS = 0.5;
+    private static final int NUM_COLUMNS = 7;
 
     /**
      * Constructor to initialize the controller with the primary stage and core game components.
@@ -55,8 +61,8 @@ public class GameController {
      */
     public GameController(Stage primaryStage) {
         this.stage = primaryStage;
-        stage.setMinWidth(850);
-        stage.setMinHeight(850);
+        stage.setMinWidth(MIN_STAGE_WIDTH);
+        stage.setMinHeight(MIN_STAGE_HEIGHT);
         this.gameLogic = new GameLogic();
         this.gameState = new GameStateManager();
         this.playerSettings = new PlayerSettings();
@@ -69,8 +75,8 @@ public class GameController {
     }
 
     /** Sets whether the game mode is versus computer. */
-    public void setVsComputer(boolean vsComputer) {
-        this.vsComputer = vsComputer;
+    public void setVsComputer(boolean isVsComputer) {
+        this.vsComputer = isVsComputer;
     }
 
     /** @return true if game mode is Player vs. Computer. */
@@ -125,10 +131,10 @@ public class GameController {
      * and is not reused across sessions. The renderer is used exclusively for UI updates
      * during a single game session, and not modified externally.
      *
-     * @param boardRenderer the BoardRenderer to use for updating the game board UI
+     * @param renderer the BoardRenderer to use for updating the game board UI
      */
-    public void setBoardRenderer(BoardRenderer boardRenderer) {
-        this.boardRenderer = boardRenderer;
+    public void setBoardRenderer(BoardRenderer renderer) {
+        this.boardRenderer = renderer;
     }
 
     /** Sets the animator that visually drops game pieces. */
@@ -137,8 +143,8 @@ public class GameController {
     }
 
     /** Sets the AI player logic for Player vs. Computer mode. */
-    public void setAIPlayer(AIPlayer aiPlayer) {
-        this.aiPlayer = aiPlayer;
+    public void setAIPlayer(AIPlayer ai) {
+        this.aiPlayer = ai;
     }
 
     /** Sets the confetti animator for post-win celebration effects. */
@@ -209,31 +215,22 @@ public class GameController {
     }
 
     /**
-     * Handles the logic of dropping a piece into a column. Includes animations,
-     * sound, move validation, win/draw detection, and AI turn logic.
+     * Handles the logic of dropping a piece into a column. Validates the move,
+     * plays animation and sound, updates the board, and checks win/draw state.
      *
      * @param col       the column to drop into
      * @param labelText mode label for display
      */
     public void dropPiece(int col, String labelText) {
-        if (gameState.isGameOver() || gameLogic.isColumnFull(col)) {
-            displayMessage("Column is full. Please choose another column!", false, labelText);
-            return;
-        }
+        if (!validateMove(col, labelText)) return;
 
         int row = gameLogic.getAvailableRow(col);
-        if (row == -1) {
-            displayMessage("No available row in this column.", false, labelText);
-            return;
-        }
-
         int currentPlayer = gameState.getCurrentPlayer();
         Color currentColor = (currentPlayer == 1)
                 ? playerSettings.getPlayerOneColor()
                 : playerSettings.getPlayerTwoColor();
 
         boardRenderer.setButtonsDisabled(true);
-
         playDropSound();
 
         gameAnimator.animateDrop(col, row, currentColor, () -> {
@@ -242,35 +239,69 @@ public class GameController {
                 boardRenderer.setButtonsDisabled(false);
                 return;
             }
-            boardRenderer.setPiece(row, col, currentColor);
-            gameState.incrementMoveCount();
 
-            if (gameLogic.checkWinState(currentPlayer)) {
-                gameState.setGameOver(true);
-                displayMessage("Player " + currentPlayer + " Wins!", true, labelText);
-                // Highlight the winning positions
-                List<int[]> winPositions = gameLogic.getWinningPositions();
-                boardRenderer.highlightWinningLine(winPositions, currentColor);
-                // Explode rolling pieces
-                confettiAnimator.explodeRollingPiecesIntoConfetti();
-                // Start confetti
-                confettiAnimator.startConfettiAnimation();
-            } else if (gameState.getMoveCount() == 42 || gameLogic.isBoardFull()) {
-                gameState.setGameOver(true);
-                displayMessage("It's a Draw!", true, labelText);
-            } else {
-                gameState.switchPlayer();
-                if (boardLayout != null) {
-                    boardLayout.refreshTurnHighlight(gameState.getCurrentPlayer());
-                }
-                // Let AI play automatically if it's their turn
-                if (labelText.equals("Player vs. Computer") && gameState.getCurrentPlayer() == 2) {
-                    triggerAIMove(labelText);  // AI goes automatically
-                } else {
-                    boardRenderer.setButtonsDisabled(false);
-                }
-            }
+            handlePostMove(col, row, currentPlayer, currentColor, labelText);
         });
+    }
+    /**
+     * Handles the result of a move after the piece has been placed.
+     * Updates the UI, checks win/draw state, switches players, and triggers AI if needed.
+     *
+     * @param col           the column the piece was dropped into
+     * @param row           the row the piece landed in
+     * @param currentPlayer the current player's number (1 or 2)
+     * @param currentColor  the color of the current player's piece
+     * @param labelText     the mode label used for displaying messages
+     */
+    private void handlePostMove(int col, int row, int currentPlayer, Color currentColor, String labelText) {
+        boardRenderer.setPiece(row, col, currentColor);
+        gameState.incrementMoveCount();
+
+        if (gameLogic.checkWinState(currentPlayer)) {
+            gameState.setGameOver(true);
+            displayMessage("Player " + currentPlayer + " Wins!", true, labelText);
+            List<int[]> winPositions = gameLogic.getWinningPositions();
+            boardRenderer.highlightWinningLine(winPositions, currentColor);
+            confettiAnimator.explodeRollingPiecesIntoConfetti();
+            confettiAnimator.startConfettiAnimation();
+        } else if (gameState.getMoveCount() == MAX_MOVES || gameLogic.isBoardFull()) {
+            gameState.setGameOver(true);
+            displayMessage("It's a Draw!", true, labelText);
+        } else {
+            gameState.switchPlayer();
+            if (boardLayout != null) {
+                boardLayout.refreshTurnHighlight(gameState.getCurrentPlayer());
+            }
+
+            if (labelText.equals("Player vs. Computer") && gameState.getCurrentPlayer() == 2) {
+                triggerAIMove(labelText);
+            } else {
+                boardRenderer.setButtonsDisabled(false);
+            }
+        }
+    }
+
+    /**
+     * Validates whether a move can be made in the given column.
+     * Displays an error message if the move is invalid.
+     *
+     * @param col       the column to validate
+     * @param labelText the mode label used for displaying messages
+     * @return true if the move is valid and can proceed; false otherwise
+     */
+    private boolean validateMove(int col, String labelText) {
+        if (gameState.isGameOver() || gameLogic.isColumnFull(col)) {
+            displayMessage("Column is full. Please choose another column!", false, labelText);
+            return false;
+        }
+
+        int row = gameLogic.getAvailableRow(col);
+        if (row == -1) {
+            displayMessage("No available row in this column.", false, labelText);
+            return false;
+        }
+
+        return true;
     }
 
     /**
@@ -279,11 +310,11 @@ public class GameController {
      * @param labelText game mode label
      */
     private void triggerAIMove(String labelText) {
-        PauseTransition delay = new PauseTransition(Duration.seconds(0.5));
+        PauseTransition delay = new PauseTransition(Duration.seconds(AI_MOVE_DELAY_SECONDS));
         delay.setOnFinished(event -> {
             int aiMove = aiPlayer.getMove();
 
-            if (aiMove >= 0 && aiMove < 7) {
+            if (aiMove >= 0 && aiMove < NUM_COLUMNS) {
                 dropPiece(aiMove, labelText); // Let AI drop a piece
             } else {
                 displayMessage("AI attempted invalid move.", true, labelText);
