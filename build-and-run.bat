@@ -88,7 +88,7 @@ jpackage ^
   --win-menu ^
   --win-dir-chooser ^
   --win-menu-group "Connect4 Game" ^
-  --app-version 2.2 ^
+  --app-version 2.3 ^
   --vendor "Weronika Golden" ^
   --java-options "--module-path=app;lib" ^
   --java-options "--add-modules=Connect4_Local_GamePlay,javafx.controls,javafx.fxml,javafx.swing"

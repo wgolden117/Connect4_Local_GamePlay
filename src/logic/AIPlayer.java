@@ -10,7 +10,7 @@ import java.util.Random;
  * for simulations and evaluations.
  *
  * @author Weronika
- * @version 2.0
+ * @version 2.1
  */
 public class AIPlayer {
     private final GameLogic gameLogic;
@@ -19,7 +19,6 @@ public class AIPlayer {
     private final String difficulty;
     private static final int cols = 7;
     private static final Random RANDOM = new Random();
-
 
     /**
      * Constructs an AI player with specified difficulty and player ID.
@@ -57,7 +56,6 @@ public class AIPlayer {
         int col;
         do {
             col = RANDOM.nextInt(cols);
-
         } while (gameLogic.isColumnFull(col));
         return col;
     }
@@ -74,14 +72,14 @@ public class AIPlayer {
         for (int col = 0; col < cols; col++) {
             if (!gameLogic.isColumnFull(col)) {
                 int row = gameLogic.getAvailableRow(col);
-                board[row][col] = humanPlayerId; // Simulate opponent move
+                board[row][col] = humanPlayerId;
 
-                if (gameLogic.checkWinState(humanPlayerId)) {
-                    board[row][col] = 0; // Undo
-                    return col; // Block it
+                if (hasWon(board, humanPlayerId)) {
+                    board[row][col] = 0;
+                    return col;
                 }
 
-                board[row][col] = 0; // Undo
+                board[row][col] = 0;
             }
         }
 
@@ -94,77 +92,83 @@ public class AIPlayer {
      * @return the best evaluated column
      */
     private int getBestMoveMinimax() {
+        int[][] board = gameLogic.getBoard();
+        // First: Check for immediate winning move
+        for (int col = 0; col < cols; col++) {
+            if (!gameLogic.isColumnFull(col)) {
+                int row = gameLogic.getAvailableRow(col);
+                int[][] boardCopy = cloneBoard(board);
+                boardCopy[row][col] = aiPlayerId;
+
+                if (hasWon(boardCopy, aiPlayerId)) {
+                    return col; // WIN NOW
+                }
+            }
+        }
+        // Second: Proceed with regular minimax
         int bestScore = Integer.MIN_VALUE;
         int bestCol = -1;
-        int[][] board = gameLogic.getBoard();
 
         for (int col = 0; col < cols; col++) {
             if (!gameLogic.isColumnFull(col)) {
                 int row = gameLogic.getAvailableRow(col);
-                board[row][col] = aiPlayerId;
+                int[][] boardCopy = cloneBoard(board);
+                boardCopy[row][col] = aiPlayerId;
 
-                int score = minimax(6, false, Integer.MIN_VALUE, Integer.MAX_VALUE);  // Depth 6 or higher
-                board[row][col] = 0;
+                int score = minimax(boardCopy, 6, false, Integer.MIN_VALUE, Integer.MAX_VALUE);
 
-                if (score > bestScore) {
+                if (score > bestScore || (score == bestScore && Math.abs(col - 3) < Math.abs(bestCol - 3))) {
                     bestScore = score;
                     bestCol = col;
-                } else if (score == bestScore && Math.abs(col - 3) < Math.abs(bestCol - 3)) {
-                    bestCol = col; // Prefer closer to center if scores are equal
                 }
             }
         }
-
         return bestCol != -1 ? bestCol : getRandomMove();
     }
 
     /**
      * Minimax algorithm with alpha-beta pruning to evaluate best move.
      *
+     * @param board the simulated board state
      * @param depth current depth in search tree
      * @param isMaximizing true if maximizing player
      * @param alpha alpha bound for pruning
      * @param beta beta bound for pruning
      * @return evaluation score for current board
      */
-    private int minimax(int depth, boolean isMaximizing, int alpha, int beta) {
-        int[][] board = gameLogic.getBoard();
-
+    private int minimax(int[][] board, int depth, boolean isMaximizing, int alpha, int beta) {
         if (hasWon(board, aiPlayerId)) return 100000;
         if (hasWon(board, humanPlayerId)) return -100000;
-        if (depth == 0 || gameLogic.isBoardFull()) return evaluateBoard(board);
+        if (depth == 0 || isBoardFull(board)) return evaluateBoard(board);
 
         if (isMaximizing) {
             int maxEval = Integer.MIN_VALUE;
             for (int col = 0; col < cols; col++) {
-                    if (gameLogic.isColumnFull(col)) continue;
+                if (isColumnFull(board, col)) continue;
 
-                    int row = gameLogic.getAvailableRow(col);
-                    board[row][col] = aiPlayerId;
+                int row = getAvailableRow(board, col);
+                int[][] boardCopy = cloneBoard(board);
+                boardCopy[row][col] = aiPlayerId;
 
-                    int eval = minimax(depth - 1, false, alpha, beta);
-                    board[row][col] = 0;
-
-                    maxEval = Math.max(maxEval, eval);
-                    alpha = Math.max(alpha, eval);
-                    if (beta <= alpha) break;
-                }
+                int eval = minimax(boardCopy, depth - 1, false, alpha, beta);
+                maxEval = Math.max(maxEval, eval);
+                alpha = Math.max(alpha, eval);
+                if (beta <= alpha) break;
+            }
             return maxEval;
         } else {
             int minEval = Integer.MAX_VALUE;
             for (int col = 0; col < cols; col++) {
-                if (gameLogic.isColumnFull(col)) continue;
-                {
-                    int row = gameLogic.getAvailableRow(col);
-                    board[row][col] = humanPlayerId;
+                if (isColumnFull(board, col)) continue;
 
-                    int eval = minimax(depth - 1, true, alpha, beta);
-                    board[row][col] = 0;
+                int row = getAvailableRow(board, col);
+                int[][] boardCopy = cloneBoard(board);
+                boardCopy[row][col] = humanPlayerId;
 
-                    minEval = Math.min(minEval, eval);
-                    beta = Math.min(beta, eval);
-                    if (beta <= alpha) break;
-                }
+                int eval = minimax(boardCopy, depth - 1, true, alpha, beta);
+                minEval = Math.min(minEval, eval);
+                beta = Math.min(beta, eval);
+                if (beta <= alpha) break;
             }
             return minEval;
         }
@@ -239,34 +243,39 @@ public class AIPlayer {
         for (int row = 0; row < 6; row++) {
             if (board[row][3] == aiPlayerId) score += 6;
         }
-        // Evaluate all 4-piece "windows"
+
+        // Horizontal windows
         for (int row = 0; row < 6; row++) {
-            for (int col = 0; col < 7 - 3; col++) {
+            for (int col = 0; col < 4; col++) {
                 int[] window = {board[row][col], board[row][col + 1], board[row][col + 2], board[row][col + 3]};
                 score += evaluateWindow(window);
             }
         }
-        // Vertical
-        for (int row = 0; row < 6 - 3; row++) {
+
+        // Vertical windows
+        for (int row = 0; row < 3; row++) {
             for (int col = 0; col < 7; col++) {
                 int[] window = {board[row][col], board[row + 1][col], board[row + 2][col], board[row + 3][col]};
                 score += evaluateWindow(window);
             }
         }
-        // Positive diagonal
-        for (int row = 0; row < 6 - 3; row++) {
-            for (int col = 0; col < 7 - 3; col++) {
+
+        // Positive diagonals
+        for (int row = 0; row < 3; row++) {
+            for (int col = 0; col < 4; col++) {
                 int[] window = {board[row][col], board[row + 1][col + 1], board[row + 2][col + 2], board[row + 3][col + 3]};
                 score += evaluateWindow(window);
             }
         }
-        // Negative diagonal
+
+        // Negative diagonals
         for (int row = 3; row < 6; row++) {
-            for (int col = 0; col < 7 - 3; col++) {
+            for (int col = 0; col < 4; col++) {
                 int[] window = {board[row][col], board[row - 1][col + 1], board[row - 2][col + 2], board[row - 3][col + 3]};
                 score += evaluateWindow(window);
             }
         }
+
         return score;
     }
 
@@ -297,5 +306,57 @@ public class AIPlayer {
         else if (humanCount == 2 && emptyCount == 2) score -= 200;
 
         return score;
+    }
+
+    /**
+     * Creates a deep copy of the board for simulation purposes.
+     *
+     * @param board the original board
+     * @return a deep copy of the board
+     */
+    private int[][] cloneBoard(int[][] board) {
+        int[][] copy = new int[board.length][];
+        for (int i = 0; i < board.length; i++) {
+            copy[i] = board[i].clone();
+        }
+        return copy;
+    }
+
+    /**
+     * Checks if the board is full (no valid moves).
+     *
+     * @param board the board to check
+     * @return true if full, false otherwise
+     */
+    private boolean isBoardFull(int[][] board) {
+        for (int col = 0; col < cols; col++) {
+            if (board[0][col] == 0) return false;
+        }
+        return true;
+    }
+
+    /**
+     * Returns whether a specific column is full.
+     *
+     * @param board the board to inspect
+     * @param col the column index
+     * @return true if the column is full, false otherwise
+     */
+    private boolean isColumnFull(int[][] board, int col) {
+        return board[0][col] != 0;
+    }
+
+    /**
+     * Gets the available row for the given column.
+     *
+     * @param board the board to inspect
+     * @param col the column to check
+     * @return the available row index, or -1 if full
+     */
+    private int getAvailableRow(int[][] board, int col) {
+        for (int row = board.length - 1; row >= 0; row--) {
+            if (board[row][col] == 0) return row;
+        }
+        return -1;
     }
 }
