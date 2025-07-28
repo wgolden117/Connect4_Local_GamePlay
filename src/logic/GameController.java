@@ -88,12 +88,22 @@ public class GameController {
         return movingPieceAnimator;
     }
 
-    /** @return the player settings object, containing names and colors. */
+    /**
+     * Returns the player settings. Changes to the returned object
+     * will affect the internal state of the game controller.
+     *
+     * @return the shared PlayerSettings instance
+     */
     public PlayerSettings getPlayerSettings() {
         return playerSettings;
     }
 
-    /** @return the game state manager which tracks player turns and win state. */
+    /**
+     * Returns the game state manager. Changes to the returned object
+     * will affect the internal state of the game controller.
+     *
+     * @return the shared GameStateManager instance
+     */
     public GameStateManager getGameStateManager() {
         return gameState;
     }

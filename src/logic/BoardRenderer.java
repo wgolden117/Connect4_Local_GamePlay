@@ -131,11 +131,18 @@ public class BoardRenderer {
     }
 
     /**
-     * Returns the 2D array of Circle nodes for the board.
-     * @return the board's circle array
+     * Returns a shallow copy of the 2D array of Circle nodes.
+     * Modifying the returned array won't affect the internal structure,
+     * but note: the Circle objects themselves are still shared.
+     *
+     * @return a shallow copy of the board's circle array
      */
     public Circle[][] getCircles() {
-        return circles;
+        Circle[][] copy = new Circle[ROWS][COLS];
+        for (int i = 0; i < ROWS; i++) {
+            System.arraycopy(circles[i], 0, copy[i], 0, COLS);
+        }
+        return copy;
     }
 
     /**

@@ -25,22 +25,27 @@ public class GameLogic {
     }
 
     /**
-     * Returns the current game board.
+     * Returns a copy of the current game board to avoid exposing internal state.
      *
-     * @return a 2D array representing the board state
+     * @return a deep copy of the board state
      */
     public int[][] getBoard() {
-        return board;
+        int[][] copy = new int[ROWS][COLS];
+        for (int row = 0; row < ROWS; row++) {
+            System.arraycopy(board[row], 0, copy[row], 0, COLS);
+        }
+        return copy;
     }
 
     /**
-     * Returns a list of positions that form the most recent winning line.
+     * Returns a copy of the winning positions list to preserve encapsulation.
      *
-     * @return a list of row/column coordinate pairs
+     * @return an unmodifiable copy of the winning positions
      */
     public List<int[]> getWinningPositions() {
-        return winningPositions;
+        return List.copyOf(winningPositions);
     }
+
 
     /**
      * Checks if the given column is full (no more available spaces).

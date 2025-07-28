@@ -42,9 +42,8 @@ public class MovingPieceAnimator {
      * @return List of RollingPiece objects.
      */
     public List<RollingPiece> getRollingPieces() {
-        return rollingPieces;
+        return List.copyOf(rollingPieces);
     }
-
 
     /**
      * Starts the rolling animation by generating and dropping pieces into the container.
