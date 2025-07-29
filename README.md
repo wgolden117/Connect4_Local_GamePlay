@@ -12,7 +12,9 @@ You don’t need to build the game yourself — you can download a pre-built ver
 
 ### Windows
 - **Portable App (.exe)**  
-  Just download the `.exe` file, double‑click, and start playing!
+1. Download the Connect4-Portable.zip from the [Releases](https://github.com/wgolden117/Connect4_Local_GamePlay/releases/tag/v1.0.0) page.
+2. Right‑click the file and select Extract All (or use your favorite unzip tool).
+3. Open the extracted folder and double‑click **Connect4.exe** to play!
     - No installation required
     - Great if you just want to try the game quickly
 
@@ -21,7 +23,7 @@ You don’t need to build the game yourself — you can download a pre-built ver
     - Standard Windows install/uninstall
     - Creates shortcuts
 
-**Note:** Since this is a student‑made game, Windows will warn that the publisher is untrusted. This is expected and safe to ignore. You can proceed by clicking **“More Info → Run Anyway.”**
+**Note:** Since this is a student‑made game, Windows will warn that the publisher is untrusted. This is expected and safe to ignore. You can proceed by clicking **“More Info → Run Anyway”** or **"Keep anyway"**
 
 ### Build from Source
 If you prefer, you can also build and run the game locally:
