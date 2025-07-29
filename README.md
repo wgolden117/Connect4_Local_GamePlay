@@ -23,19 +23,7 @@ You don’t need to build the game yourself — you can download a pre-built ver
     - Standard Windows install/uninstall
     - Creates shortcuts
 
-**Note:** Since this is a student‑made game, Windows will warn that the publisher is untrusted. This is expected and safe to ignore. You can proceed by clicking **“More Info → Run Anyway”** or **"Keep anyway"**
-
-### Build from Source
-If you prefer, you can also build and run the game locally:
-1. Clone the repository:
-   ```bash
-   git clone https://github.com/YOUR_USERNAME/Connect4_Local_GamePlay.git
-   cd Connect4_Local_GamePlay
-   ```
-2. Run the build script:
-   ````bash
-   build-and-run.bat
-    ````
+**Note:** Since this is a student‑made game, Windows will warn that the publisher is untrusted. This is expected and safe to ignore. You can proceed by clicking **“More Info → Run Anyway”** 
 
 ## Requirements
 - Windows 10 or later
