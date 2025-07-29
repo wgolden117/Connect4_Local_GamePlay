@@ -6,17 +6,34 @@ This is a fully-featured Connect 4 game built using JavaFX and Java 18. The game
 - A polished, responsive user interface
 - A custom physics-based animation
 
-## Play the Game
+## Download & Play
 
-### 🔹 Option 1: App Image (Portable)
-Just double-click `Connect4.exe` in the `dist/Connect4App/Connect4/` folder to play the game. No installation is required!
+You don’t need to build the game yourself — you can download a pre-built version from the [Releases](https://github.com/wgolden117/Connect4_Local_GamePlay/releases/tag/v1.0.0) page.
 
->**Note:** Some systems may prompt with a security warning. This is expected since the app is unsigned and built by a student developer. Click **More Info > Run Anyway** to continue.
+### Windows
+- **Portable App (.exe)**  
+  Just download the `.exe` file, double‑click, and start playing!
+    - No installation required
+    - Great if you just want to try the game quickly
 
-### 🔹 Option 2: Windows Installer
-Use `Connect4-Installer.exe` to install the game like a standard Windows app.
+- **Windows Installer (.msi)**  
+  Download the `.msi` installer if you’d like the game added to your Start Menu like a normal application.
+    - Standard Windows install/uninstall
+    - Creates shortcuts
 
->**Untrusted Publisher Warning:** Windows will show a "Publisher: Unknown" warning. This is normal for apps not signed with a commercial certificate.
+**Note:** Since this is a student‑made game, Windows will warn that the publisher is untrusted. This is expected and safe to ignore. You can proceed by clicking **“More Info → Run Anyway.”**
+
+### Build from Source
+If you prefer, you can also build and run the game locally:
+1. Clone the repository:
+   ```bash
+   git clone https://github.com/YOUR_USERNAME/Connect4_Local_GamePlay.git
+   cd Connect4_Local_GamePlay
+   ```
+2. Run the build script:
+   ````bash
+   build-and-run.bat
+    ````
 
 ## Requirements
 - Windows 10 or later
